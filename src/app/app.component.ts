@@ -6,5 +6,7 @@ import { Component } from '@angular/core';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent {
-  title = 'app';
+  sliderMinValue: number = 0;
+  sliderMaxValue: number = 100;
+  sliderValue: number = 10;
 }
