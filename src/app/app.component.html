@@ -1,5 +1,7 @@
 <p>value: {{sliderValue}}</p>
-<app-slider [minValue] = "sliderMinValue"
-  [maxValue] = "sliderMaxValue"
-  [(value)] = "sliderValue">
-</app-slider>
+<input type = "range" class = "slider"
+  [min] = "sliderMinValue" 
+  [max] = "sliderMaxValue"
+  [(ngModel)] = "sliderValue">
+
+<render-target></render-target>

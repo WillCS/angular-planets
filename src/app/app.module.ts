@@ -3,12 +3,12 @@ import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { AppComponent } from './app.component';
-import { SliderComponent } from './slider/slider.component';
+import { RenderTargetComponent } from './render-target/render-target.component';
 
 @NgModule({
   declarations: [
     AppComponent,
-    SliderComponent
+    RenderTargetComponent
   ],
   imports: [
     BrowserModule,
