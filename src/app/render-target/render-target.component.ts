@@ -6,17 +6,15 @@ import { Component, OnInit, ViewChild, ElementRef, AfterViewInit } from '@angula
   styleUrls: ['./render-target.component.css']
 })
 export class RenderTargetComponent implements OnInit, AfterViewInit {
-  @ViewChild('target')
-  renderTarget: ElementRef;
-
   constructor() {
 
   }
 
   ngOnInit(): void {
+    
   }
 
   ngAfterViewInit(): void {
-    console.log(this.renderTarget);
+
   }
 }

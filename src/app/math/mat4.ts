@@ -32,7 +32,7 @@ export class Mat4 {
     }
 
     public add(m: Mat4): Mat4 {
-        let newMatrix: Mat4 = new Mat4(this.matrix);
+        let newMatrix: Mat4 = this.copy();
         for(let x = 0; x < 4; x++) {
             for(let y = 0; y < 4; y++) {
                 newMatrix.set(x, y, this.get(x, y) + m.get(x, y));
@@ -42,7 +42,7 @@ export class Mat4 {
     }
 
     public subtract(m: Mat4): Mat4 {
-        let newMatrix: Mat4 = new Mat4(this.matrix);
+        let newMatrix: Mat4 = this.copy();
         for(let x = 0; x < 4; x++) {
             for(let y = 0; y < 4; y++) {
                 newMatrix.set(x, y, this.get(x, y) - m.get(x, y));
@@ -62,7 +62,7 @@ export class Mat4 {
             }
 
             return new Mat4(newMatrix);
-        } else if(n.constructor.name === 'Vec4') {
+        } else if(n instanceof Vec4) {
             let v = n as Vec4;
             return new Vec4(
                     this.getRow(0).dot(v), 
@@ -71,10 +71,10 @@ export class Mat4 {
                     this.getRow(3).dot(v));
         } else {
             let m = n as Mat4;
-            let newMatrix: Mat4 = new Mat4(this.matrix);
+            let newMatrix: Mat4 = Mat4.zero();
             for(let x = 0; x < 4; x++) {
                 for(let y = 0; y < 4; y++) {
-                    newMatrix.set(x, y, this.getRow(x).dot(m.getColumn(y)));
+                    newMatrix.set(x, y, this.getRow(y).dot(m.getColumn(x)));
                 }
             }
             return newMatrix;
@@ -82,7 +82,7 @@ export class Mat4 {
     }
 
     public divide(n: number): Mat4 {
-        let newMatrix: number[] = this.matrix;
+        let newMatrix: number[] = Object.assign([], this.matrix);
         for(let i = 0; i < 16; i++) {
             newMatrix[i] /= n;
         }
@@ -93,8 +93,8 @@ export class Mat4 {
         return this.matrix;
     }
 
-    public forGL(): number[] {
-        return this.transpose().toArray();
+    public forGL(): Float32Array {
+        return new Float32Array(this.transpose().toArray());
     }
 
     public static fromRows(row1: number[], row2: number[], row3: number[], row4: number[]): Mat4 {
@@ -107,7 +107,7 @@ export class Mat4 {
     }
 
     public static fromColumns(col1: number[], col2: number[], col3: number[], col4: number[]): Mat4 {
-        let matrix: number[];
+        let matrix: number[] = [];
         for(let i = 0; i < 4; i++) {
             matrix.push(col1[i]);
             matrix.push(col2[i]);
@@ -123,15 +123,15 @@ export class Mat4 {
     }
 
     public static identity(): Mat4 {
-        let newMat: number[];
-        for(let i = 0; i < 16; i++) {
-            newMat[i] = 1;
+        let newMat: Mat4 = Mat4.zero();
+        for(let i = 0; i < 4; i++) {
+            newMat.set(i, i, 1);
         }
-        return new Mat4(newMat);
+        return newMat;
     }
 
     public static zero(): Mat4 {
-        let newMat: number[];
+        let newMat: number[] = [];
         for(let i = 0; i < 16; i++) {
             newMat[i] = 0;
         }
@@ -209,12 +209,15 @@ export class Mat4 {
         return this.multiply(Mat4.zRotationMatrix(theta));
     }
 
-    public static perspectiveProjection(width: number, height: number, 
+    public static perspectiveProjection(fov: number, aspect: number, 
             near: number, far: number): Mat4 {
-        let a: number = (2 * near) / width;
-        let b: number = (2 * near) / height;
-        let c: number = -(far + near) / (far - near);
-        let d: number = -(2 * far * near) / (far - near);
+        let f: number = Math.tan(Math.PI * 0.5 - 0.5 * fov);
+        let range:number = 1 / (near - far);
+
+        let a = f / aspect;
+        let b = f;
+        let c = (near + far) * range;
+        let d = near * far * range * 2;
         return new Mat4([
             a, 0,  0, 0,
             0, b,  0, 0,
@@ -235,5 +238,17 @@ export class Mat4 {
             0, 0, c, d,
             0, 0, 0, 1
         ]);
+    }
+
+    public copy(): Mat4 {
+        return new Mat4(Object.assign([], this.matrix));
+    }
+
+    public debugPrint(): void {
+        console.log("Matrix:");
+        console.log(`[${this.matrix[0]} ${this.matrix[1]} ${this.matrix[2]} ${this.matrix[3]}]`);
+        console.log(`[${this.matrix[4]} ${this.matrix[5]} ${this.matrix[6]} ${this.matrix[7]}]`);
+        console.log(`[${this.matrix[8]} ${this.matrix[9]} ${this.matrix[10]} ${this.matrix[11]}]`);
+        console.log(`[${this.matrix[12]} ${this.matrix[13]} ${this.matrix[14]} ${this.matrix[15]}]`);
     }
 }
