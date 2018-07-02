@@ -2,7 +2,7 @@ import { Component, OnInit, ElementRef } from '@angular/core';
 
 import { WebGLHelper } from './webGLHelper';
 import { Mat4 } from './math/mat4';
-import { ICOSPHERE } from './icosphere';
+import { IcosphereBuilder } from './icosphere';
 
 @Component({
   selector: 'app-root',
@@ -26,6 +26,8 @@ export class AppComponent implements OnInit {
   private colourLocation: number;
   private matrixLocation: WebGLUniformLocation;
   private shaderProgram: WebGLProgram;
+  private sphereBuilder: IcosphereBuilder;
+  private sphere: number[];
 
   ngOnInit(): void {
     // Initialise our drawing environment
@@ -40,7 +42,7 @@ export class AppComponent implements OnInit {
     this.colourLocation = this.gl.getAttribLocation(this.shaderProgram, 'a_colour');
 
     this.matrixLocation = this.gl.getUniformLocation(this.shaderProgram, "u_matrix");
-
+    
     this.positionBuffer = this.gl.createBuffer();
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBuffer);
     this.setGeometry(this.gl);
@@ -116,7 +118,7 @@ export class AppComponent implements OnInit {
     let matrix: Mat4 = Mat4.perspectiveProjection(Math.PI / 2, aspect, 1, 400);
     //let matrix: Mat4 = Mat4.orthographicProjection(this.canvas.width, this.canvas.height, 1, 400);
     matrix = matrix.translate(0, 50, -200);
-    matrix = matrix.scale(20, 20, 20);
+    matrix = matrix.scale(50, 50, 50);
     matrix = matrix.rotateX((this.sliderValue / 100) * Math.PI * 2);
     matrix = matrix.rotateX((21 / 100) * 2 * Math.PI);
     //matrix = matrix.translate(-50, 0, -15);
@@ -125,20 +127,21 @@ export class AppComponent implements OnInit {
 
     let primitiveType: number = this.gl.TRIANGLES;
     let offset: number = 0;
-    let count: number = 20 * 3;
+    let count: number = this.sphere.length / 3;
     this.gl.drawArrays(primitiveType, offset, count);
   }
 
   private setGeometry(gl: WebGLRenderingContext): void {
+    this.sphereBuilder = new IcosphereBuilder();
+    this.sphere = this.sphereBuilder.build(2);
     gl.bufferData(
-        gl.ARRAY_BUFFER, new Float32Array(ICOSPHERE),
-        gl.STATIC_DRAW);
+        gl.ARRAY_BUFFER, new Float32Array(this.sphere), gl.STATIC_DRAW);
   }
   
   // Fill the buffer with colors for the 'F'.
   private setColors(gl): void {
     let colours: number[] = [];
-    for(let i = 0; i < 180; i++) {
+    for(let i = 0; i < this.sphere.length; i++) {
       colours.push(Math.floor(Math.random() * 255));
     }
     gl.bufferData(gl.ARRAY_BUFFER, new Uint8Array(colours), gl.STATIC_DRAW);

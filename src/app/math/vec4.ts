@@ -61,7 +61,7 @@ export class Vec4 {
         return new Vec4(this.x + v.x, this.y + v.y, this.z + v.z, this.w + v.w);
     }
 
-    public subtracct(v: Vec4): Vec4 {
+    public subtract(v: Vec4): Vec4 {
         return new Vec4(this.x - v.x, this.y - v.y, this.z - v.z, this.w - v.w);
     }
 
