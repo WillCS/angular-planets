@@ -1,4 +1,5 @@
 import { Vec4 } from './vec4';
+import { Vec3 } from './vec3';
 
 export class Mat4 {
     private matrix: number[];
@@ -138,7 +139,7 @@ export class Mat4 {
         return new Mat4(newMat);
     }
 
-    public static translationMatrix(x: number, y: number, z: number) {
+    public static translationMatrix(x: number, y: number, z: number): Mat4 {
         return new Mat4([
             1, 0, 0, x,
             0, 1, 0, y,
@@ -147,11 +148,11 @@ export class Mat4 {
         ]);
     }
 
-    public translate(x: number, y: number, z: number) {
+    public translate(x: number, y: number, z: number): Mat4 {
         return this.multiply(Mat4.translationMatrix(x, y, z));
     }
 
-    public static scalingMatrix(x: number, y: number, z: number) {
+    public static scalingMatrix(x: number, y: number, z: number): Mat4 {
         return new Mat4([
             x, 0, 0, 0,
             0, y, 0, 0,
@@ -160,11 +161,11 @@ export class Mat4 {
         ]);
     }
 
-    public scale(x: number, y: number, z: number) {
+    public scale(x: number, y: number, z: number): Mat4 {
         return this.multiply(Mat4.scalingMatrix(x, y, z));
     }
 
-    public static xRotationMatrix(theta: number) {
+    public static xRotationMatrix(theta: number): Mat4 {
         let c: number = Math.cos(theta);
         let s: number = Math.sin(theta);
         return new Mat4([
@@ -175,7 +176,7 @@ export class Mat4 {
         ]);
     }
     
-    public rotateX(theta: number) {
+    public rotateX(theta: number): Mat4 {
         return this.multiply(Mat4.xRotationMatrix(theta));
     }
 
@@ -190,11 +191,11 @@ export class Mat4 {
         ]);
     }
     
-    public rotateY(theta: number) {
+    public rotateY(theta: number): Mat4 {
         return this.multiply(Mat4.yRotationMatrix(theta));
     }
 
-    public static zRotationMatrix(theta: number) {
+    public static zRotationMatrix(theta: number): Mat4 {
         let c: number = Math.cos(theta);
         let s: number = Math.sin(theta);
         return new Mat4([
@@ -205,8 +206,16 @@ export class Mat4 {
         ]);
     }
     
-    public rotateZ(theta: number) {
+    public rotateZ(theta: number): Mat4 {
         return this.multiply(Mat4.zRotationMatrix(theta));
+    }
+
+    public rotateYawPitchRoll(yaw: number, pitch: number, roll: number): Mat4 {
+        return this.rotateZ(yaw).rotateY(pitch).rotateX(roll);
+    }
+
+    public rotateByRotationVector(rotationVector: Vec3): Mat4 {
+        return this.rotateYawPitchRoll(rotationVector.z, rotationVector.y, rotationVector.x);
     }
 
     public static perspectiveProjection(fov: number, aspect: number, 

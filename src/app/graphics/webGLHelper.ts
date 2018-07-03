@@ -1,6 +1,6 @@
 declare var require: any;
-const vertexShaderSource = require('raw-loader!glslify-loader!./glsl/vertex.glsl');
-const fragmentShaderSource = require('raw-loader!glslify-loader!./glsl/fragment.glsl');
+const vertexShaderSource = require('raw-loader!glslify-loader!../glsl/vertex.glsl');
+const fragmentShaderSource = require('raw-loader!glslify-loader!../glsl/fragment.glsl');
 
 export let WebGLHelper = {
     setupCanvas(canvas: HTMLCanvasElement): WebGLRenderingContext {

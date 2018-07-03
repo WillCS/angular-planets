@@ -1,8 +1,12 @@
 import { Component, OnInit, ElementRef } from '@angular/core';
 
-import { WebGLHelper } from './webGLHelper';
+import { WebGLHelper } from './graphics/webGLHelper';
 import { Mat4 } from './math/mat4';
-import { IcosphereBuilder } from './icosphere';
+import { Drawable } from './graphics/drawable';
+import { Ring, Orbit } from './objects/orbiter';
+import { Vec3 } from './math/vec3';
+import { Body, Star } from './objects/body';
+import { Camera3D, OrbitalCamera } from './camera';
 
 @Component({
   selector: 'app-root',
@@ -16,18 +20,14 @@ export class AppComponent implements OnInit {
 
   private canvas: HTMLCanvasElement;
   private gl: WebGLRenderingContext;
+  private camera: OrbitalCamera;
 
   constructor(private elementRef: ElementRef) {
+    
   }
 
-  private positionBuffer: WebGLBuffer;
-  private positionLocation: number;
-  private colourBuffer: WebGLBuffer;
-  private colourLocation: number;
-  private matrixLocation: WebGLUniformLocation;
   private shaderProgram: WebGLProgram;
-  private sphereBuilder: IcosphereBuilder;
-  private sphere: number[];
+  private object: Body;
 
   ngOnInit(): void {
     // Initialise our drawing environment
@@ -36,20 +36,18 @@ export class AppComponent implements OnInit {
     this.canvas.height = 1000;
     this.gl = WebGLHelper.setupCanvas(this.canvas);
 
+    let body = new Star(Vec3.zero(), 0, Math.PI / 30, 50, new Vec3(255, 255, 0));
+    body.addOrbiter(new Ring(65, 95, Math.PI / 300, new Vec3(0, 0, 0), 0, Math.PI * 1.75));
+    body.addOrbiter(new Orbit(new Star(Vec3.zero(), 0, 0, 10, new Vec3(0, 0, 255)), 120, Math.PI / 2500, new Vec3(0, 0, Math.PI / 3)));
+
+    this.object = body;
+    this.object.initDrawing(this.gl);
+
+    this.camera = new OrbitalCamera();
+    this.camera.lookAt(body, false);
+    this.camera.setDistance(60, false);
+
     this.shaderProgram = WebGLHelper.buildShaderProgram(this.gl);
-
-    this.positionLocation = this.gl.getAttribLocation(this.shaderProgram, 'a_position');
-    this.colourLocation = this.gl.getAttribLocation(this.shaderProgram, 'a_colour');
-
-    this.matrixLocation = this.gl.getUniformLocation(this.shaderProgram, "u_matrix");
-    
-    this.positionBuffer = this.gl.createBuffer();
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBuffer);
-    this.setGeometry(this.gl);
-
-    this.colourBuffer = this.gl.createBuffer();
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.colourBuffer);
-    this.setColors(this.gl);
 
     // Get ready to draw
     this.lastTime = performance.now();
@@ -58,7 +56,7 @@ export class AppComponent implements OnInit {
 
   private tps: number = 30;
   private dt: number = 1 / this.tps;
-  private accumulator: number;
+  private accumulator: number = 0;
   private lastTime: number;
 
   private doLoop(frameTime: number): void {
@@ -75,9 +73,10 @@ export class AppComponent implements OnInit {
 
     while(this.accumulator >= this.dt) {
       this.accumulator -= this.dt;
-      // update
+      this.object.update();
     }
 
+    this.camera.update();
     this.draw();
     window.requestAnimationFrame((t: number) => this.doLoop(t));
   }
@@ -93,58 +92,16 @@ export class AppComponent implements OnInit {
     this.gl.enable(this.gl.DEPTH_TEST);
 
     this.gl.useProgram(this.shaderProgram);
-
-    this.gl.enableVertexAttribArray(this.positionLocation);
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBuffer);
-
-    let pSize: number = 3;
-    let pType: number = this.gl.FLOAT;
-    let pNormalize: boolean = false;
-    let pStride: number = 0;
-    let pOffset: number = 0;
-    this.gl.vertexAttribPointer(this.positionLocation, pSize, pType, pNormalize, pStride, pOffset);
-
-    this.gl.enableVertexAttribArray(this.colourLocation);
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.colourBuffer);
-
-    let cSize: number = 3;
-    let cType: number = this.gl.UNSIGNED_BYTE;
-    let cNormalize: boolean = true;
-    let cStride: number = 0;
-    let cOffset: number = 0;
-    this.gl.vertexAttribPointer(this.colourLocation, cSize, cType, cNormalize, cStride, cOffset);
-
+    
     let aspect: number = this.canvas.clientWidth / this.canvas.clientHeight;
     let matrix: Mat4 = Mat4.perspectiveProjection(Math.PI / 2, aspect, 1, 400);
     //let matrix: Mat4 = Mat4.orthographicProjection(this.canvas.width, this.canvas.height, 1, 400);
-    matrix = matrix.translate(0, 50, -200);
-    matrix = matrix.scale(50, 50, 50);
+    matrix = matrix.translate(0, -10, -200);
     matrix = matrix.rotateX((this.sliderValue / 100) * Math.PI * 2);
-    matrix = matrix.rotateX((21 / 100) * 2 * Math.PI);
     //matrix = matrix.translate(-50, 0, -15);
 
-    this.gl.uniformMatrix4fv(this.matrixLocation, false, matrix.forGL());
-
-    let primitiveType: number = this.gl.TRIANGLES;
-    let offset: number = 0;
-    let count: number = this.sphere.length / 3;
-    this.gl.drawArrays(primitiveType, offset, count);
-  }
-
-  private setGeometry(gl: WebGLRenderingContext): void {
-    this.sphereBuilder = new IcosphereBuilder();
-    this.sphere = this.sphereBuilder.build(2);
-    gl.bufferData(
-        gl.ARRAY_BUFFER, new Float32Array(this.sphere), gl.STATIC_DRAW);
-  }
-  
-  // Fill the buffer with colors for the 'F'.
-  private setColors(gl): void {
-    let colours: number[] = [];
-    for(let i = 0; i < this.sphere.length; i++) {
-      colours.push(Math.floor(Math.random() * 255));
-    }
-    gl.bufferData(gl.ARRAY_BUFFER, new Uint8Array(colours), gl.STATIC_DRAW);
-    return;
+    //matrix.multiply(this.camera.getLookMatrix());
+    
+    this.object.draw(this.gl, this.shaderProgram, matrix);
   }
 }
