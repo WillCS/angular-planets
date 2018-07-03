@@ -287,6 +287,26 @@ export module MeshBuilder {
 
         return mesh;
     }
+
+    export function buildLines(gl: WebGLRenderingContext, lines: Vec3[], colour: Vec3): Mesh {
+        let mesh: Mesh = new Mesh(gl);
+        let geometry: number[] = [];
+        let indices: number[]  = [];
+        let index: number = 0;
+        let colours: number[] = [];
+        lines.forEach(line => {
+            geometry.push(line.x, line.y, line.z);
+            indices.push(index++);
+            colours.push(colour.x, colour.y, colour.z);
+        });
+
+        mesh.setDrawMode(gl.LINES);
+        mesh.setVertices(geometry);
+        mesh.setIndices(indices);
+        mesh.setColours(colours);
+        
+        return mesh;
+    }
 }
 
 class Triangle {

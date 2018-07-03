@@ -17,41 +17,41 @@ export class OrbitalCamera extends Camera3D {
     private focusPos: Vec3;
     private moveSpeed: number = 1;
     private moveAcceleration: number = 1;
-    private moveInertia: number;
+    private moveInertia: number = 0;
     private posChanging: boolean = false;
 
-    private distance: number;
+    private distance: number = 1;
     private targetDistance: number;
     private dDistance: number = 1
     private distanceAcceleration: number = 1;
-    private distanceInertia: number;
+    private distanceInertia: number = 0;
     private distanceChanging: boolean = false;
 
     public minDistance: number = 0;
-    public maxDistance: number;
+    public maxDistance: number = 1;
 
-    private inclination: number;
+    private inclination: number = Math.PI / 2;
     private targetInclination: number;
     private dInclination: number = 1;
     private inclinationAcceleration: number = 1;
-    private inclinationInertia: number;
+    private inclinationInertia: number = 0;
     private inclinationChanging: boolean = false;
 
     private minInclination: number = 0;
     private maxInclination: number = Math.PI;
 
-    private azimuth: number;
+    private azimuth: number = 0;
     private targetAzimuth: number;
     private dAzimuth: number = 1;
     private azimuthAcceleration: number = 1;
-    private azimuthInertia: number;
+    private azimuthInertia: number = 0;
     private azimuthChanging: boolean = false;
 
-    private roll: number;
+    private roll: number = 0;
     private targetRoll: number;
     private dRoll: number = 1;
     private rollAcceleration: number = 1;
-    private rollInertia: number;
+    private rollInertia: number = 0;
     private rollChanging: boolean = false;
 
     constructor() {
@@ -68,13 +68,14 @@ export class OrbitalCamera extends Camera3D {
     }
 
     public get location(): Vec3 {
-        let x: number = Math.sin(this.azimuth) * Math.cos(this.inclination);
+        let x: number = Math.cos(this.azimuth) * Math.sin(this.inclination);
         let y: number = Math.sin(this.azimuth) * Math.sin(this.inclination);
-        let z: number = Math.cos(this.azimuth);
+        let z: number = Math.cos(this.inclination);
         return this.focusPosition.add(new Vec3(x, y, z).multiply(this.distance));
     }
 
     public update(): void {
+        //this.azimuth += Math.PI / 300;
         this.updatePosition();
         this.updateDistance();
         this.updateRoll();
@@ -93,6 +94,7 @@ export class OrbitalCamera extends Camera3D {
             this.focusPos = this.focusPos.add(Vec3.one().multiply(this.moveInertia));
             
             if(this.focusPos.subtract(this.focus.position).length <= epsilon) {
+                this.moveInertia = 0;
                 this.focusPos = this.focus.position;
                 this.posChanging = false;
             }
@@ -112,6 +114,7 @@ export class OrbitalCamera extends Camera3D {
             this.distance += dir * this.distanceInertia;
 
             if(Math.abs(this.distance - this.targetDistance) <= epsilon) {
+                this.distanceInertia = 0;
                 this.distance = this.targetDistance;
                 this.distanceChanging = false;
             }
@@ -131,6 +134,7 @@ export class OrbitalCamera extends Camera3D {
             this.inclination += dir * this.inclinationInertia;
 
             if(Math.abs(this.inclination - this.targetInclination) <= epsilon) {
+                this.inclinationInertia = 0;
                 this.inclination = this.targetInclination;
                 this.inclinationChanging = false;
             }
@@ -152,6 +156,7 @@ export class OrbitalCamera extends Camera3D {
             this.azimuth += dir * this.azimuthInertia;
 
             if(Math.abs(this.azimuth - this.targetAzimuth) <= epsilon) {
+                this.azimuthInertia = 0;
                 this.azimuth = this.targetAzimuth;
                 this.azimuthChanging = false;
             }
@@ -171,6 +176,7 @@ export class OrbitalCamera extends Camera3D {
             this.roll += dir * this.rollInertia;
 
             if(Math.abs(this.roll - this.targetRoll) <= epsilon) {
+                this.rollInertia = 0;
                 this.roll = this.targetRoll;
                 this.rollChanging = false;
             }
@@ -178,12 +184,16 @@ export class OrbitalCamera extends Camera3D {
     }
 
     public getLookMatrix(): Mat4 {
-        let z: Vec3 = this.location.subtract(this.focusPosition).normalize();
+        let z: Vec3 = this.getLookDirection().negate();
         let y: Vec3 = this.getUpVector();
         let x: Vec3 = y.cross(z).normalize();
         y = z.cross(x).normalize();
 
-        return Mat4.fromRowVectors(x.toVec4(), y.toVec4(), z.toVec4(), new Vec4(0, 0, 0, 1));
+        let matrix: Mat4 =
+                Mat4.fromRowVectors(x.toVec4(), y.toVec4(), z.toVec4(), new Vec4(0, 0, 0, 1));
+        matrix = matrix.translate(-this.location.x, -this.location.y, -this.location.z);
+
+        return matrix;
     }
     
     /** If the camera were a physical object in the world, this returns the vector pointing
@@ -195,13 +205,17 @@ export class OrbitalCamera extends Camera3D {
      *  Thanks to Tina for helping me figure this out! <3
      */
     public getUpVector(): Vec3 {
-        let sphereNormal: Vec3 = this.location.subtract(this.focusPosition);
+        let sphereNormal: Vec3 = this.getLookDirection().negate();
         let localAzimuth: number = this.azimuth + (Math.PI / 2);
         let bisectNormal: Vec3 = new Vec3(
-                Math.sin(localAzimuth) * Math.cos(this.roll),
+                Math.cos(localAzimuth) * Math.sin(this.roll),
                 Math.sin(localAzimuth) * Math.sin(this.roll),
                 Math.cos(localAzimuth));
         return sphereNormal.cross(bisectNormal).normalize();
+    }
+
+    public getLookDirection(): Vec3 {
+        return this.focusPosition.subtract(this.location).normalize();
     }
     
     public lookAt(focus: Body, smoothly: boolean = true): void {

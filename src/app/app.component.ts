@@ -2,11 +2,11 @@ import { Component, OnInit, ElementRef } from '@angular/core';
 
 import { WebGLHelper } from './graphics/webGLHelper';
 import { Mat4 } from './math/mat4';
-import { Drawable } from './graphics/drawable';
 import { Ring, Orbit } from './objects/orbiter';
 import { Vec3 } from './math/vec3';
 import { Body, Star } from './objects/body';
-import { Camera3D, OrbitalCamera } from './camera';
+import { OrbitalCamera } from './camera';
+import { Axes } from './objects/axes';
 
 @Component({
   selector: 'app-root',
@@ -21,6 +21,7 @@ export class AppComponent implements OnInit {
   private canvas: HTMLCanvasElement;
   private gl: WebGLRenderingContext;
   private camera: OrbitalCamera;
+  private axes: Axes;
 
   constructor(private elementRef: ElementRef) {
     
@@ -44,8 +45,13 @@ export class AppComponent implements OnInit {
     this.object.initDrawing(this.gl);
 
     this.camera = new OrbitalCamera();
+    this.camera.minDistance = 60;
+    this.camera.maxDistance = 500;
     this.camera.lookAt(body, false);
-    this.camera.setDistance(60, false);
+    this.camera.setDistance(200, false);
+
+    this.axes = new Axes(5);
+    this.axes.initDrawing(this.gl);
 
     this.shaderProgram = WebGLHelper.buildShaderProgram(this.gl);
 
@@ -94,14 +100,16 @@ export class AppComponent implements OnInit {
     this.gl.useProgram(this.shaderProgram);
     
     let aspect: number = this.canvas.clientWidth / this.canvas.clientHeight;
-    let matrix: Mat4 = Mat4.perspectiveProjection(Math.PI / 2, aspect, 1, 400);
-    //let matrix: Mat4 = Mat4.orthographicProjection(this.canvas.width, this.canvas.height, 1, 400);
+    let matrix: Mat4 = Mat4.perspectiveProjection(Math.PI / 2, aspect, 1, 1000);
+    //let matrix: Mat4 = Mat4.orthographicProjection(this.canvas.width, this.canvas.height, 1, 1000);
     matrix = matrix.translate(0, -10, -200);
     matrix = matrix.rotateX((this.sliderValue / 100) * Math.PI * 2);
+    matrix = matrix.rotateY(Math.PI / 4);
     //matrix = matrix.translate(-50, 0, -15);
 
-    //matrix.multiply(this.camera.getLookMatrix());
+    //matrix = matrix.multiply(this.camera.getLookMatrix());
     
+    this.axes.draw(this.gl, this.shaderProgram, matrix);
     this.object.draw(this.gl, this.shaderProgram, matrix);
   }
 }

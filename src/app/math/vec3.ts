@@ -64,8 +64,8 @@ export class Vec3 {
     public cross(v: Vec3): Vec3 {
         return new Vec3(
             this.y * v.z - this.z * v.y,
-            this.x * v.z - this.z - v.x,
-            this.x * v.y - this.y - v.z
+            this.x * v.z - this.z * v.x,
+            this.x * v.y - this.y * v.z
         );
     }
 
@@ -88,6 +88,10 @@ export class Vec3 {
 
     public normalize(): Vec3 {
         return this.divide(this.length);
+    }
+    
+    public negate(): Vec3 {
+        return this.multiply(-1);
     }
 
     public toArray(): number[] {

@@ -85,6 +85,10 @@ export class Vec4 {
     public normalize(): Vec4 {
         return this.divide(this.length);
     }
+    
+    public negate(): Vec4 {
+        return this.multiply(-1);
+    }
 
     public toArray(): number[] {
         return [this.x, this.y, this.z, this.w];
