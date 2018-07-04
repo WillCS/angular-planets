@@ -214,13 +214,9 @@ export class OrbitalCamera extends Camera3D {
     }
 
     public getLookMatrix(): Mat4 {
-        let z: Vec3 = this.getLookDirection().negate();
-        let y: Vec3 = this.getUpVector();
-        let x: Vec3 = y.cross(z).normalize();
-        y = z.cross(x).normalize();
-
         let matrix: Mat4 = Mat4.identity();
-                //Mat4.fromRowVectors(x.toVec4(), y.toVec4(), z.toVec4(), new Vec4(0, 0, 0, 1));
+        matrix = matrix.rotateZ(Math.PI / 2 - this.roll);
+        matrix = matrix.rotateX(Math.PI / 2 - this.inclination);
         matrix = matrix.rotateY(this.azimuth - Math.PI / 2);
         matrix = matrix.translate(-this.location.x, -this.location.y, -this.location.z);
 

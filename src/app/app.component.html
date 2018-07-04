@@ -1,7 +1,44 @@
-<p>value: {{sliderValue}}</p>
-<input type = "range" class = "slider"
-  [min] = "sliderMinValue" 
-  [max] = "sliderMaxValue"
-  [(ngModel)] = "sliderValue">
+<table>
+  <tr>
+    <th>
+        <p>azimuth: {{azimuthValue}}</p>
+    </th>
+    <th>
+        <p>inclination: {{inclinationValue}}</p>
+    </th>
+    <th>
+        <p>roll: {{rollValue}}</p>
+    </th>
+    <th>
+        <p>distance: {{distanceValue}}</p>
+    </th>
+  </tr>
+  <tr>
+    <td>
+      <input type = "range" class = "slider"
+        [min] = "sliderMinValue" 
+        [max] = "sliderMaxValue"
+        [(ngModel)] = "azimuthValue">
+    </td>
+    <td>
+      <input type = "range" class = "slider"
+        [min] = "sliderMinValue" 
+        [max] = "sliderMaxValue"
+        [(ngModel)] = "inclinationValue">
+    </td>
+    <td>
+      <input type = "range" class = "slider"
+        [min] = "sliderMinValue" 
+        [max] = "sliderMaxValue"
+        [(ngModel)] = "rollValue">
+    </td>
+    <td>
+      <input type = "range" class = "slider"
+          [min] = "distanceMinValue" 
+          [max] = "distanceMaxValue"
+          [(ngModel)] = "distanceValue">
+    </td>
+  </tr>
+</table>
 
 <render-target></render-target>
