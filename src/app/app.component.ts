@@ -16,7 +16,7 @@ import { Axes } from './objects/axes';
 export class AppComponent implements OnInit {
   sliderMinValue: number = 0;
   sliderMaxValue: number = 100;
-  sliderValue: number = 50;
+  sliderValue: number = 10;
 
   private canvas: HTMLCanvasElement;
   private gl: WebGLRenderingContext;
@@ -45,10 +45,11 @@ export class AppComponent implements OnInit {
     this.object.initDrawing(this.gl);
 
     this.camera = new OrbitalCamera();
+    this.camera.initDrawing(this.gl);
     this.camera.minDistance = 60;
     this.camera.maxDistance = 500;
     this.camera.lookAt(body, false);
-    this.camera.setDistance(200, false);
+    this.camera.setDistance(130, false);
 
     this.axes = new Axes(5);
     this.axes.initDrawing(this.gl);
@@ -83,6 +84,7 @@ export class AppComponent implements OnInit {
     }
 
     this.camera.update();
+    this.camera.setInclination(this.sliderValue * Math.PI / 100, false);
     this.draw();
     window.requestAnimationFrame((t: number) => this.doLoop(t));
   }
@@ -102,13 +104,14 @@ export class AppComponent implements OnInit {
     let aspect: number = this.canvas.clientWidth / this.canvas.clientHeight;
     let matrix: Mat4 = Mat4.perspectiveProjection(Math.PI / 2, aspect, 1, 1000);
     //let matrix: Mat4 = Mat4.orthographicProjection(this.canvas.width, this.canvas.height, 1, 1000);
-    matrix = matrix.translate(0, -10, -200);
-    matrix = matrix.rotateX((this.sliderValue / 100) * Math.PI * 2);
-    matrix = matrix.rotateY(Math.PI / 4);
+    //matrix = matrix.translate(0, -10, -200);
+    //matrix = matrix.rotateX((this.sliderValue / 100) * Math.PI * 2);
+    //matrix = matrix.rotateY(-Math.PI / 4);
     //matrix = matrix.translate(-50, 0, -15);
 
-    //matrix = matrix.multiply(this.camera.getLookMatrix());
+    matrix = matrix.multiply(this.camera.getLookMatrix());
     
+    this.camera.draw(this.gl, this.shaderProgram, matrix);
     this.axes.draw(this.gl, this.shaderProgram, matrix);
     this.object.draw(this.gl, this.shaderProgram, matrix);
   }

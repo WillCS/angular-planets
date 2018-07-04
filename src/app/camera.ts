@@ -3,13 +3,43 @@ import { Vec3 } from './math/vec3';
 import { Vec4 } from './math/vec4';
 import { Body } from './objects/body';
 import { MathHelper } from './math/mathHelper';
+import { Drawable } from './graphics/drawable';
+import { Mesh, MeshBuilder } from './graphics/mesh';
 
-export abstract class Camera3D {
+export abstract class Camera3D implements Drawable {
     public abstract get location(): Vec3;
     public abstract getLookMatrix(): Mat4;
     public abstract getUpVector(): Vec3;
+    public abstract getLookDirection();
 
     public abstract update(): void;
+
+    private mesh: Mesh;
+    private arrows: Mesh[] = [];
+
+    draw(gl: WebGLRenderingContext, shader: WebGLProgram, worldMatrix: Mat4): void {
+        worldMatrix = worldMatrix.translate(this.location.x, this.location.y, this.location.z);
+        worldMatrix = worldMatrix.scale(10, 10, 10);
+        this.mesh.draw(shader, worldMatrix);
+
+        let up: Vec3 = this.getUpVector().multiply(2);
+        this.arrows[0].draw(shader, worldMatrix.scale(up.x, up.y, up.z));
+        
+        let forward: Vec3 = this.getLookDirection().negate().multiply(2);
+        this.arrows[1].draw(shader, worldMatrix.scale(forward.x, forward.y, forward.z));
+        
+        let right: Vec3 = up.cross(forward).normalize().multiply(2);
+        this.arrows[2].draw(shader, worldMatrix.scale(right.x, right.y, right.z));
+    }
+
+    initDrawing(gl: WebGLRenderingContext): void {
+        this.mesh = MeshBuilder.buildIcosphere(gl, 0, new Vec3(100, 100, 100));
+        this.arrows.push(
+            MeshBuilder.buildLines(gl, [new Vec3(0, 0, 0), new Vec3(1, 1, 1)], new Vec3(0, 255, 0)),
+            MeshBuilder.buildLines(gl, [new Vec3(0 ,0 ,0), new Vec3(1, 1, 1)], new Vec3(0, 0, 255)),
+            MeshBuilder.buildLines(gl, [new Vec3(0 ,0 ,0), new Vec3(1, 1, 1)], new Vec3(255, 0, 0)),
+        );
+    }
 }
 
 export class OrbitalCamera extends Camera3D {
@@ -30,14 +60,14 @@ export class OrbitalCamera extends Camera3D {
     public minDistance: number = 0;
     public maxDistance: number = 1;
 
-    private inclination: number = Math.PI / 2;
+    private inclination: number = Math.PI / 3;
     private targetInclination: number;
     private dInclination: number = 1;
     private inclinationAcceleration: number = 1;
     private inclinationInertia: number = 0;
     private inclinationChanging: boolean = false;
 
-    private minInclination: number = 0;
+    private minInclination: number = 0
     private maxInclination: number = Math.PI;
 
     private azimuth: number = 0;
@@ -47,7 +77,7 @@ export class OrbitalCamera extends Camera3D {
     private azimuthInertia: number = 0;
     private azimuthChanging: boolean = false;
 
-    private roll: number = 0;
+    private roll: number = Math.PI / 2;
     private targetRoll: number;
     private dRoll: number = 1;
     private rollAcceleration: number = 1;
@@ -69,13 +99,13 @@ export class OrbitalCamera extends Camera3D {
 
     public get location(): Vec3 {
         let x: number = Math.cos(this.azimuth) * Math.sin(this.inclination);
-        let y: number = Math.sin(this.azimuth) * Math.sin(this.inclination);
-        let z: number = Math.cos(this.inclination);
+        let z: number = Math.sin(this.azimuth) * Math.sin(this.inclination);
+        let y: number = Math.cos(this.inclination);
         return this.focusPosition.add(new Vec3(x, y, z).multiply(this.distance));
     }
 
     public update(): void {
-        //this.azimuth += Math.PI / 300;
+        this.azimuth += Math.PI / 300;
         this.updatePosition();
         this.updateDistance();
         this.updateRoll();
@@ -189,8 +219,9 @@ export class OrbitalCamera extends Camera3D {
         let x: Vec3 = y.cross(z).normalize();
         y = z.cross(x).normalize();
 
-        let matrix: Mat4 =
-                Mat4.fromRowVectors(x.toVec4(), y.toVec4(), z.toVec4(), new Vec4(0, 0, 0, 1));
+        let matrix: Mat4 = Mat4.identity();
+                //Mat4.fromRowVectors(x.toVec4(), y.toVec4(), z.toVec4(), new Vec4(0, 0, 0, 1));
+        matrix = matrix.rotateY(this.azimuth - Math.PI / 2);
         matrix = matrix.translate(-this.location.x, -this.location.y, -this.location.z);
 
         return matrix;
@@ -206,11 +237,11 @@ export class OrbitalCamera extends Camera3D {
      */
     public getUpVector(): Vec3 {
         let sphereNormal: Vec3 = this.getLookDirection().negate();
-        let localAzimuth: number = this.azimuth + (Math.PI / 2);
+        let localAzimuth: number = this.azimuth - (Math.PI / 2);
         let bisectNormal: Vec3 = new Vec3(
                 Math.cos(localAzimuth) * Math.sin(this.roll),
-                Math.sin(localAzimuth) * Math.sin(this.roll),
-                Math.cos(localAzimuth));
+                Math.cos(this.roll),
+                Math.sin(localAzimuth) * Math.sin(this.roll));
         return sphereNormal.cross(bisectNormal).normalize();
     }
 

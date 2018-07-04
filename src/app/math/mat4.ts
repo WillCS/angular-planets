@@ -221,7 +221,7 @@ export class Mat4 {
     public static perspectiveProjection(fov: number, aspect: number, 
             near: number, far: number): Mat4 {
         let f: number = Math.tan(Math.PI * 0.5 - 0.5 * fov);
-        let range:number = 1 / (near - far);
+        let range: number = 1 / (near - far);
 
         let a = f / aspect;
         let b = f;
