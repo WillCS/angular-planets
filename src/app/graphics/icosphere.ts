@@ -1,5 +1,3 @@
-import { Vec3 } from "../math/vec3";
-
 export class IcosphereBuilder {
     public build(lod: number): number[] {
         let points = [];

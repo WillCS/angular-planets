@@ -3,7 +3,7 @@ import { Component, OnInit, ElementRef } from '@angular/core';
 import { WebGLHelper } from './graphics/webGLHelper';
 import { Mat4 } from './math/mat4';
 import { Ring, Orbit } from './objects/orbiter';
-import { Vec3 } from './math/vec3';
+import { Vec3 } from './math/vector';
 import { Body, Star } from './objects/body';
 import { OrbitalCamera } from './camera';
 import { Axes } from './objects/axes';
@@ -19,7 +19,7 @@ export class AppComponent implements OnInit {
   azimuthValue: number = 25;
   inclinationValue: number = 25;
   rollValue: number = 0;
-  distanceMinValue: number = 60;
+  distanceMinValue: number = 30;
   distanceMaxValue: number = 600;
   distanceValue: number = 200;
 
@@ -34,6 +34,7 @@ export class AppComponent implements OnInit {
 
   private shaderProgram: WebGLProgram;
   private object: Body;
+  private moon: Body;
 
   ngOnInit(): void {
     // Initialise our drawing environment
@@ -43,18 +44,19 @@ export class AppComponent implements OnInit {
     this.gl = WebGLHelper.setupCanvas(this.canvas);
 
     let body = new Star(Vec3.zero(), 0, Math.PI / 30, 50, new Vec3(255, 255, 0));
-    body.addOrbiter(new Ring(65, 95, Math.PI / 300, new Vec3(0, 0, 0), 0, Math.PI * 1.75));
-    let moon = new Star(Vec3.zero(), 0, 0, 10, new Vec3(0, 0, 255));
-    body.addOrbiter(new Orbit(moon, 120, Math.PI / 2500, new Vec3(0, 0, Math.PI / 3)));
+    body.addOrbiter(new Ring(65, 95, 0, new Vec3(0, 0, 0), 
+        new Vec3(150, 50, 50), new Vec3(150, 80, 80)));
+    this.moon = new Star(Vec3.zero(), 0, 0, 10, new Vec3(0, 0, 255));
+    body.addOrbiter(new Orbit(this.moon, body, 120, Math.PI / 2500, new Vec3(0, 0, Math.PI / 3)));
 
     this.object = body;
     this.object.initDrawing(this.gl);
 
     this.camera = new OrbitalCamera();
     this.camera.initDrawing(this.gl);
-    this.camera.minDistance = 60;
+    this.camera.minDistance = 30;
     this.camera.maxDistance = 500;
-    this.camera.lookAt(body, false);
+    this.camera.lookAt(this.moon, false);
     this.camera.setDistance(200, false);
 
     this.axes = new Axes(0);
@@ -102,7 +104,7 @@ export class AppComponent implements OnInit {
     //WebGLHelper.resizeCanvasToElementSize(this.canvas);
 
     this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
-
+    this.gl.clearColor(0, 0, 0, 1);
     this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
 
     this.gl.enable(this.gl.CULL_FACE);
@@ -112,7 +114,7 @@ export class AppComponent implements OnInit {
     
     let aspect: number = this.canvas.clientWidth / this.canvas.clientHeight;
     let matrix: Mat4 = Mat4.perspectiveProjection(Math.PI / 2, aspect, 1, 1000);
-    //let matrix: Mat4 = Mat4.orthographicProjection(this.canvas.width, this.canvas.height, 1, 1000);
+    //let matrix: Mat4 = Mat4.orthographicProjection(this.canvas.width, this.canvas.height, 1, 400);
     //matrix = matrix.translate(0, -10, -200);
     //matrix = matrix.rotateX((this.azimuthValue / 100) * Math.PI * 2);
     //matrix = matrix.rotateY(-Math.PI / 4);

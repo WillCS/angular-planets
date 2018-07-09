@@ -1,6 +1,5 @@
-import { Vec3 } from "../math/vec3";
+import { Vec3 } from "../math/vector";
 import { Mat4 } from "../math/mat4";
-import { createOfflineCompileUrlResolver } from "@angular/compiler";
 
 export class Mesh {
     private vertexBuffer: WebGLBuffer; 

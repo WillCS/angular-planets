@@ -1,6 +1,5 @@
 import { Mat4 } from './math/mat4';
-import { Vec3 } from './math/vec3';
-import { Vec4 } from './math/vec4';
+import { Vec3, Vec4 } from './math/vector';
 import { Body } from './objects/body';
 import { MathHelper } from './math/mathHelper';
 import { Drawable } from './graphics/drawable';

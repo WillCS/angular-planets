@@ -1,18 +1,62 @@
-import { Vec3 } from "../math/vec3";
+import { Vec3, Vec4 } from "../math/vector";
 import { Mat4 } from "../math/mat4";
 import { Drawable } from "../graphics/drawable";
-import { Orbiter } from "./orbiter";
+import { Orbiter, Orbit } from "./orbiter";
 import { Mesh, MeshBuilder } from "../graphics/mesh";
 
 export abstract class Body implements Drawable {
     protected orbiters: Orbiter[] = [];
+    public orbit: Orbit;
+    public parent: Body;
 
     constructor(protected posVector: Vec3, protected rotVector: Vec3) {
 
     }
 
+    public getLocalTransform(): Mat4 {
+        if(this.parent) {
+            return Mat4.identity()
+                    .rotateByRotationVector(this.orbit.rotationVector)
+                    .rotateY(this.orbit.orbitProgress)
+                    .translate(this.orbit.radius, 0, 0);
+        } else {
+            return Mat4.translationMatrix(this.posVector.x, this.posVector.y, this.posVector.z);
+        }
+    }
+
+    public getTransform(): Mat4 {
+        if(this.parent) {
+            return this.parent.getTransform().multiply(this.getLocalTransform());
+        } else {
+            return this.getLocalTransform();
+        }
+    }
+
     public get position(): Vec3 {
-        return this.posVector;
+        if(this.parent) {
+            return this.getTransform().multiply(new Vec4(1, 1, 1, 1)).toVec3();
+        } else {
+            return this.localPosition;
+        }
+    }
+
+    protected get localPosition(): Vec3 {
+        if(this.parent) {
+            return new Vec3(
+                this.orbit.radius * Math.sin(this.orbit.orbitProgress), 
+                0, 
+                this.orbit.radius * Math.cos(this.orbit.orbitProgress));
+        } else {
+            return this.posVector;
+        }
+    }
+
+    private get cumulativeTilt(): Mat4 {
+        if(this.parent) {
+            return Mat4.identity().rotateYawPitchRoll(0, this.rotation.y, 0);
+        } else {
+            return this.parent.cumulativeTilt.rotateByRotationVector(this.rotation);
+        }
     }
 
     public get rotation(): Vec3 {

@@ -1,5 +1,4 @@
-import { Vec4 } from './vec4';
-import { Vec3 } from './vec3';
+import { Vec3, Vec4 } from './vector';
 
 export class Mat4 {
     private matrix: number[];
@@ -211,11 +210,11 @@ export class Mat4 {
     }
 
     public rotateYawPitchRoll(yaw: number, pitch: number, roll: number): Mat4 {
-        return this.rotateZ(yaw).rotateY(pitch).rotateX(roll);
+        return this.rotateY(yaw).rotateZ(pitch).rotateX(roll);
     }
 
     public rotateByRotationVector(rotationVector: Vec3): Mat4 {
-        return this.rotateYawPitchRoll(rotationVector.z, rotationVector.y, rotationVector.x);
+        return this.rotateYawPitchRoll(rotationVector.y, rotationVector.z, rotationVector.x);
     }
 
     public static perspectiveProjection(fov: number, aspect: number, 

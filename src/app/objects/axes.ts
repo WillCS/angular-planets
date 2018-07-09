@@ -1,6 +1,6 @@
 import { Drawable } from "../graphics/drawable";
 import { Mesh, MeshBuilder } from "../graphics/mesh";
-import { Vec3 } from "../math/vec3";
+import { Vec3 } from "../math/vector";
 import { Mat4 } from "../math/mat4";
 
 export class Axes implements Drawable {

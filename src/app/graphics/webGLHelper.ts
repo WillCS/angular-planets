@@ -1,6 +1,3 @@
-import { Vec3 } from "../math/vec3";
-import { Mat4 } from "../math/mat4";
-
 declare var require: any;
 const vertexShaderSource = require('raw-loader!glslify-loader!../glsl/vertex.glsl');
 const fragmentShaderSource = require('raw-loader!glslify-loader!../glsl/fragment.glsl');
