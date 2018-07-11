@@ -1,0 +1,11 @@
+div.subTree {
+    padding-left: 10px;
+}
+
+input.collapseButton {
+    display: inline;
+}
+
+h1.nodeTitle {
+    display: inline;
+}

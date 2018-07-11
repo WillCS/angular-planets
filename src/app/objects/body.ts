@@ -3,8 +3,9 @@ import { Mat4 } from "../math/mat4";
 import { Drawable } from "../graphics/drawable";
 import { Orbiter, Orbit } from "./orbiter";
 import { Mesh, MeshBuilder } from "../graphics/mesh";
+import { Listable } from "../listable";
 
-export abstract class Body implements Drawable {
+export abstract class Body implements Drawable, Listable {
     protected orbiters: Orbiter[] = [];
     public orbit: Orbit;
     public parent: Body;
@@ -67,6 +68,10 @@ export abstract class Body implements Drawable {
         this.orbiters.push(orbiter);
     }
 
+    public getOrbiters(): Orbiter[] {
+        return this.orbiters;
+    }
+
     public update() {
         this.orbiters.forEach(orbiter => {
             orbiter.update();
@@ -84,6 +89,8 @@ export abstract class Body implements Drawable {
             orbiter.initDrawing(gl);
         })
     }
+
+    public abstract getName(): string;
 }
 
 export class Star extends Body {
@@ -116,5 +123,9 @@ export class Star extends Body {
         }
 
         this.mesh = MeshBuilder.buildIcosphere(gl, 3, this.colour);
+    }
+
+    public getName(): string {
+        return 'Star';
     }
 }

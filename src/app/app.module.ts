@@ -4,11 +4,15 @@ import { FormsModule } from '@angular/forms';
 
 import { AppComponent } from './app.component';
 import { RenderTargetComponent } from './render-target/render-target.component';
+import { TreeViewerComponent } from './tree-viewer/tree-viewer.component';
+import { TreeNodeComponent } from './tree-node/tree-node.component';
 
 @NgModule({
   declarations: [
     AppComponent,
-    RenderTargetComponent
+    RenderTargetComponent,
+    TreeViewerComponent,
+    TreeNodeComponent
   ],
   imports: [
     BrowserModule,

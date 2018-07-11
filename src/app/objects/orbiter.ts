@@ -3,8 +3,9 @@ import { Vec3 } from "../math/vector";
 import { Body } from "../objects/body"
 import { Drawable } from "../graphics/drawable";
 import { Mesh, MeshBuilder } from "../graphics/mesh";
+import { Listable } from "../listable";
 
-export abstract class Orbiter implements Drawable {
+export abstract class Orbiter implements Drawable, Listable {
     public get rotationVector(): Vec3 {
         return this.rotation;
     }
@@ -22,6 +23,8 @@ export abstract class Orbiter implements Drawable {
     public abstract draw(gl: WebGLRenderingContext, shader: WebGLProgram, worldMatrix: Mat4): void;
 
     public abstract initDrawing(gl: WebGLRenderingContext): void;
+
+    public abstract getName(): string;
 }
 
 export class Orbit extends Orbiter {
@@ -54,6 +57,10 @@ export class Orbit extends Orbiter {
     public initDrawing(gl: WebGLRenderingContext): void {
         this.body.initDrawing(gl);
     }
+
+    public getName(): string {
+        return 'Orbit';
+    }
 }
 
 export class Ring extends Orbiter {
@@ -83,5 +90,9 @@ export class Ring extends Orbiter {
         this.mesh = MeshBuilder.buildRing(gl, 2, 
                 this.innerRadius, this.outerRadius, this.startAngle, this.endAngle, 
                 this.innerColour, this.outerColour);
+    }
+
+    public getName(): string {
+        return 'Ring';
     }
 }

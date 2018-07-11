@@ -7,6 +7,7 @@ import { Vec3 } from './math/vector';
 import { Body, Star } from './objects/body';
 import { OrbitalCamera } from './camera';
 import { Axes } from './objects/axes';
+import { PlanetService } from './planet.service';
 
 @Component({
   selector: 'app-root',
@@ -28,7 +29,7 @@ export class AppComponent implements OnInit {
   private camera: OrbitalCamera;
   private axes: Axes;
 
-  constructor(private elementRef: ElementRef) {
+  constructor(private elementRef: ElementRef, private planetService: PlanetService) {
     
   }
 
@@ -39,7 +40,8 @@ export class AppComponent implements OnInit {
   ngOnInit(): void {
     // Initialise our drawing environment
     this.canvas = this.elementRef.nativeElement.querySelector('canvas') as HTMLCanvasElement;
-    this.canvas.width = 1000;
+    this.canvas.width = window.innerWidth;
+    this.canvas.height = window.innerHeight;
     this.canvas.height = 1000;
     this.gl = WebGLHelper.setupCanvas(this.canvas);
 
@@ -47,7 +49,15 @@ export class AppComponent implements OnInit {
     body.addOrbiter(new Ring(65, 95, 0, new Vec3(0, 0, 0), 
         new Vec3(150, 50, 50), new Vec3(150, 80, 80)));
     this.moon = new Star(Vec3.zero(), 0, 0, 10, new Vec3(0, 0, 255));
+    this.moon.addOrbiter(new Ring(15, 20, 0, new Vec3(0, 0, 0), new Vec3(255, 0, 0), new Vec3(255, 0, 0)));
+    let moon2: Body = new Star(Vec3.zero(), 0, 0, 10, new Vec3(0, 255, 255));
+    let moon3: Body = new Star(Vec3.zero(), 0, 0, 5, new Vec3(255, 255, 255));
+    moon2.addOrbiter(new Ring(15, 20, 0, new Vec3(0, 0, 0), new Vec3(255, 0, 0), new Vec3(255, 0, 0)));
+    moon2.addOrbiter(new Orbit(moon3, body, 30, Math.PI / 500, new Vec3(0, 0, 0)));
     body.addOrbiter(new Orbit(this.moon, body, 120, Math.PI / 2500, new Vec3(0, 0, Math.PI / 3)));
+    body.addOrbiter(new Orbit(moon2, body, 150, Math.PI / 2000, new Vec3(0, 0, 0)));
+
+    this.planetService.addBody(body);
 
     this.object = body;
     this.object.initDrawing(this.gl);
@@ -56,7 +66,7 @@ export class AppComponent implements OnInit {
     this.camera.initDrawing(this.gl);
     this.camera.minDistance = 30;
     this.camera.maxDistance = 500;
-    this.camera.lookAt(this.moon, false);
+    this.camera.lookAt(moon2, false);
     this.camera.setDistance(200, false);
 
     this.axes = new Axes(0);

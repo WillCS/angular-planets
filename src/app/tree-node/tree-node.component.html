@@ -1,0 +1,7 @@
+<div class='node'>
+  <input class='collapseButton' *ngIf='hasSubNodes' type='checkbox' [(ngModel)]='collapsed'>
+  <h1 class='nodeTitle'>{{ object.getName() }}</h1>
+  <div *ngIf='!collapsed' class='subTree'>
+    <app-tree-node *ngFor='let orbiter of getSubNodes()' [value]='orbiter'></app-tree-node>
+  </div>
+</div>
