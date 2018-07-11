@@ -9,7 +9,7 @@ import { Orbit } from '../objects/orbiter';
   styleUrls: ['./tree-node.component.css']
 })
 export class TreeNodeComponent implements OnInit {
-  private object: Listable;
+  public object: Listable;
   private _collapsed: boolean = true;
 
   @Input()

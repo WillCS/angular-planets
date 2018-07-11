@@ -8,7 +8,7 @@ import { Body } from '../objects/body';
   styleUrls: ['./tree-viewer.component.css']
 })
 export class TreeViewerComponent implements OnInit {
-  private bodies: Body[];
+  public bodies: Body[];
 
   constructor(private planetService: PlanetService) { }
 
