@@ -1,11 +1,45 @@
 div.subTree {
-    padding-left: 10px;
+    padding-left: 30px;
 }
 
-input.collapseButton {
-    display: inline;
+div.node {
+    position: relative;
+    min-height: 30px;
 }
 
-h1.nodeTitle {
-    display: inline;
+label.collapseButton {
+    margin-left: 25px;
+    font-size: 15px;
+    line-height: 30px;
+    height: 30px;
+    vertical-align: middle;
+}
+
+label.collapseButton > input {
+    position: relative;
+    opacity: 0;
+    cursor: pointer;
+    display: none;
+}
+
+label.collapseButton > input + span.arrow {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    border: 5px solid transparent;
+    border-left-color: #ffffff;
+    border-right-width: 0px;
+    transform: rotate(45deg);
+    transform-origin: 0% 50%;
+    transition: transform 0.1s;
+    -webkit-transition: transform 0.1s;
+}
+
+label.collapseButton > input:checked + span.arrow {
+    transform: rotate(0deg);
+}
+
+span.name {
+    position: absolute;
+    left: 25px;
 }
