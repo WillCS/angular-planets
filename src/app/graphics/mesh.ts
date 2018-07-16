@@ -183,6 +183,29 @@ export module MeshBuilder {
         return mesh;
     }
 
+    export function buildLoop(gl: WebGLRenderingContext, lod: number, 
+            radius: number, colour: Vec3): Mesh {
+        let mesh: Mesh = new Mesh(gl);
+        let geometry: number[] = [];
+        let indices: number[]  = [];
+        let index: number = 0;
+        let colours: number[] = [];
+        let n = Math.floor(32 * lod * 2 * Math.PI);
+
+        for(let i = 0; i < n + 1; i++) {
+            geometry.push(radius * Math.cos(i / n), 0, radius * Math.sin(i / n));
+            indices.push(index++);
+            colours.push(colour.x, colour.y, colour.z);
+        }
+
+        mesh.setDrawMode(gl.LINES);
+        mesh.setVertices(geometry);
+        mesh.setIndices(indices);
+        mesh.setColours(colours);
+        
+        return mesh;
+    }
+
     export function buildIcosphere(gl: WebGLRenderingContext, lod: number, 
             colour: Vec3 = null): Mesh {
         let points: Vec3[] = [];

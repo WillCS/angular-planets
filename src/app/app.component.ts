@@ -8,6 +8,8 @@ import { Body, Star } from './objects/body';
 import { OrbitalCamera } from './camera';
 import { Axes } from './objects/axes';
 import { PlanetService } from './planet.service';
+import { Shader, SkyboxShader } from './graphics/shader';
+import { Skybox } from './graphics/skybox';
 
 @Component({
   selector: 'app-root',
@@ -21,7 +23,7 @@ export class AppComponent implements OnInit {
   inclinationValue: number = 40;
   rollValue: number = 0;
   distanceMinValue: number = 200;
-  distanceMaxValue: number = 1000;
+  distanceMaxValue: number = 10000;
   distanceValue: number = 600;
 
   private canvas: HTMLCanvasElement;
@@ -34,6 +36,9 @@ export class AppComponent implements OnInit {
   }
 
   private shaderProgram: WebGLProgram;
+  private skybox: Skybox;
+  private skyboxShader: Shader;
+  
   private object: Body;
   private rings: number[] = [
     175, 195, 42, 40, 31, 42, 40, 31,
@@ -65,17 +70,20 @@ export class AppComponent implements OnInit {
     this.object = body;
     this.object.initDrawing(this.gl);
 
-    this.camera = new OrbitalCamera();
+    let aspect: number = this.canvas.clientWidth / this.canvas.clientHeight;
+    this.camera = new OrbitalCamera(Mat4.perspectiveProjection(Math.PI / 2, aspect, 1, 1500));
     this.camera.initDrawing(this.gl);
     this.camera.minDistance = 200;
-    this.camera.maxDistance = 1000;
+    this.camera.maxDistance = 10000;
     this.camera.lookAt(body, false);
     this.camera.setDistance(200, false);
 
-    this.axes = new Axes(10);
+    this.axes = new Axes(0);
     this.axes.initDrawing(this.gl);
 
     this.shaderProgram = WebGLHelper.buildShaderProgram(this.gl);
+    this.skyboxShader = new SkyboxShader(this.gl);
+    this.skybox = new Skybox(this.gl);
 
     // Get ready to draw
     this.lastTime = performance.now();
@@ -126,10 +134,12 @@ export class AppComponent implements OnInit {
     this.gl.useProgram(this.shaderProgram);
     
     let aspect: number = this.canvas.clientWidth / this.canvas.clientHeight;
-    let matrix: Mat4 = Mat4.perspectiveProjection(Math.PI / 2, aspect, 1, 1500);
+    let matrix: Mat4 = Mat4.perspectiveProjection(Math.PI / 2, aspect, 1, 10000);
     //let matrix: Mat4 = Mat4.orthographicProjection(this.canvas.width, this.canvas.height, 1, 1500);
 
     matrix = matrix.multiply(this.camera.getLookMatrix());
+
+    this.skybox.draw(this.skyboxShader, this.camera);
     
     this.camera.draw(this.gl, this.shaderProgram, matrix);
     //this.axes.draw(this.gl, this.shaderProgram, matrix);

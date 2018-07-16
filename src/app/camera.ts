@@ -8,13 +8,20 @@ import { Mesh, MeshBuilder } from './graphics/mesh';
 export abstract class Camera3D implements Drawable {
     public abstract get location(): Vec3;
     public abstract getLookMatrix(): Mat4;
+    public abstract getProjectionMatrix(): Mat4
     public abstract getUpVector(): Vec3;
     public abstract getLookDirection();
+
+    public abstract setProjectionMatrix(matrix: Mat4): void;
 
     public abstract update(): void;
 
     private mesh: Mesh;
     private arrows: Mesh[] = [];
+
+    constructor(protected projectionMatrix: Mat4) {
+
+    }
 
     draw(gl: WebGLRenderingContext, shader: WebGLProgram, worldMatrix: Mat4): void {
         worldMatrix = worldMatrix.translate(this.location.x, this.location.y, this.location.z);
@@ -83,8 +90,8 @@ export class OrbitalCamera extends Camera3D {
     private rollInertia: number = 0;
     private rollChanging: boolean = false;
 
-    constructor() {
-        super();
+    constructor(projectionMatrix: Mat4) {
+        super(projectionMatrix);
         this.focusPos = Vec3.zero();
     }
 
@@ -220,6 +227,14 @@ export class OrbitalCamera extends Camera3D {
         matrix = matrix.translate(-this.location.x, -this.location.y, -this.location.z);
 
         return matrix;
+    }
+
+    public getProjectionMatrix(): Mat4 {
+        return this.projectionMatrix;
+    }
+
+    public setProjectionMatrix(matrix: Mat4): void {
+        this.projectionMatrix = matrix;
     }
     
     /** If the camera were a physical object in the world, this returns the vector pointing

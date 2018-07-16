@@ -216,4 +216,12 @@ export class Vec4 {
     public toVec3(): Vec3 {
         return new Vec3(this.x, this.y, this.z);
     }
+
+    public static one(): Vec4 {
+        return new Vec4(1, 1, 1, 1);
+    }
+
+    public static zero(): Vec4 {
+        return new Vec4(0, 0, 0, 0);
+    }
 }

@@ -89,6 +89,13 @@ export class Mat4 {
         return new Mat4(newMatrix);
     }
 
+    public toMat3(): Mat4 {
+        let row0: Vec4 = this.getRow(0).toVec3().toVec4();
+        let row1: Vec4 = this.getRow(1).toVec3().toVec4();
+        let row2: Vec4 = this.getRow(2).toVec3().toVec4();
+        return Mat4.fromRowVectors(row0, row1, row2, Vec4.zero());
+    }
+
     public toArray(): number[] {
         return this.matrix;
     }

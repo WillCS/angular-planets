@@ -87,7 +87,7 @@ export class Ring extends Orbiter {
             this.mesh.delete();
         }
 
-        this.mesh = MeshBuilder.buildRing(gl, 2, 
+        this.mesh = MeshBuilder.buildRing(gl, 3, 
                 this.innerRadius, this.outerRadius, this.startAngle, this.endAngle, 
                 this.innerColour, this.outerColour);
     }
