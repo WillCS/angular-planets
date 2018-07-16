@@ -1,5 +1,6 @@
 import { Vec3 } from "../math/vector";
 import { Mat4 } from "../math/mat4";
+import { Shader } from "./shader";
 
 export class Mesh {
     private vertexBuffer: WebGLBuffer; 
@@ -54,11 +55,11 @@ export class Mesh {
         this.drawMode = drawMode;
     }
 
-    public draw(shader: WebGLProgram, worldMatrix: Mat4,
+    public draw(shader: Shader, worldMatrix: Mat4,
             colour: boolean = this.hasColours, normal: boolean = this.hasNormals): void {
-        this.gl.useProgram(shader);
+        shader.useShader();
 
-        let positionLocation: number = this.gl.getAttribLocation(shader, 'a_position');
+        let positionLocation: number = shader.getAttributeLocation('a_position');
         this.gl.enableVertexAttribArray(positionLocation);
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertexBuffer);
         let vertexSize: number = 3;
@@ -72,7 +73,7 @@ export class Mesh {
         this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
 
         if(colour) {
-            let colourLocation: number = this.gl.getAttribLocation(shader, 'a_colour');
+            let colourLocation: number = shader.getAttributeLocation('a_colour');
             this.gl.enableVertexAttribArray(colourLocation);
             this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.colourBuffer);
             let colourSize: number = 3;
@@ -85,7 +86,7 @@ export class Mesh {
         }
 
         if(normal) {
-            let normalLocation: number = this.gl.getAttribLocation(shader, 'a_normal');
+            let normalLocation: number = shader.getAttributeLocation('a_normal');
             this.gl.enableVertexAttribArray(normalLocation);
             this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.normalBuffer);
             let normalSize: number = 3;
@@ -97,7 +98,7 @@ export class Mesh {
                     normalSize, normalType, normalNomalize, normalStride, normalOffset);
         }
 
-        let matrixLocation = this.gl.getUniformLocation(shader, "u_matrix");
+        let matrixLocation: WebGLUniformLocation = shader.getUniformLocation("u_matrix");
         this.gl.uniformMatrix4fv(matrixLocation, false, worldMatrix.forGL());
 
         let indexType: number = this.gl.UNSIGNED_SHORT;
@@ -190,15 +191,15 @@ export module MeshBuilder {
         let indices: number[]  = [];
         let index: number = 0;
         let colours: number[] = [];
-        let n = Math.floor(32 * lod * 2 * Math.PI);
+        let n = Math.floor(32 * lod);
 
         for(let i = 0; i < n + 1; i++) {
-            geometry.push(radius * Math.cos(i / n), 0, radius * Math.sin(i / n));
+            geometry.push(radius * Math.cos(2 * Math.PI * i / n), 0, radius * Math.sin(2 * Math.PI * i / n));
             indices.push(index++);
             colours.push(colour.x, colour.y, colour.z);
         }
 
-        mesh.setDrawMode(gl.LINES);
+        mesh.setDrawMode(gl.LINE_STRIP);
         mesh.setVertices(geometry);
         mesh.setIndices(indices);
         mesh.setColours(colours);

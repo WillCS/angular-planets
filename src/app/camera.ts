@@ -4,6 +4,7 @@ import { Body } from './objects/body';
 import { MathHelper } from './math/mathHelper';
 import { Drawable } from './graphics/drawable';
 import { Mesh, MeshBuilder } from './graphics/mesh';
+import { Shader } from './graphics/shader';
 
 export abstract class Camera3D implements Drawable {
     public abstract get location(): Vec3;
@@ -23,7 +24,7 @@ export abstract class Camera3D implements Drawable {
 
     }
 
-    draw(gl: WebGLRenderingContext, shader: WebGLProgram, worldMatrix: Mat4): void {
+    draw(gl: WebGLRenderingContext, shader: Shader, worldMatrix: Mat4): void {
         worldMatrix = worldMatrix.translate(this.location.x, this.location.y, this.location.z);
         worldMatrix = worldMatrix.scale(10, 10, 10);
         this.mesh.draw(shader, worldMatrix);

@@ -4,6 +4,7 @@ import { Drawable } from "../graphics/drawable";
 import { Orbiter, Orbit } from "./orbiter";
 import { Mesh, MeshBuilder } from "../graphics/mesh";
 import { Listable } from "../listable";
+import { Shader } from "../graphics/shader";
 
 export abstract class Body implements Drawable, Listable {
     protected orbiters: Orbiter[] = [];
@@ -78,7 +79,7 @@ export abstract class Body implements Drawable, Listable {
         });
     }
 
-    public draw(gl: WebGLRenderingContext, shader: WebGLShader, worldMatrix: Mat4): void {
+    public draw(gl: WebGLRenderingContext, shader: Shader, worldMatrix: Mat4): void {
         this.orbiters.forEach(orbiter => {
             orbiter.draw(gl, shader, worldMatrix.copy());
         });
@@ -106,7 +107,7 @@ export class Star extends Body {
         this.bodyRotation %= 2 * Math.PI;
     }
 
-    public draw(gl: WebGLRenderingContext, shader: WebGLShader, worldMatrix: Mat4): void {
+    public draw(gl: WebGLRenderingContext, shader: Shader, worldMatrix: Mat4): void {
         worldMatrix = worldMatrix.rotateByRotationVector(this.rotation);
 
         super.draw(gl, shader, worldMatrix);

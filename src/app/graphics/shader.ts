@@ -1,10 +1,11 @@
-import { Skybox } from "./skybox";
 import { WebGLHelper } from "./webGLHelper";
 
 export class Shader {
     constructor(protected gl: WebGLRenderingContext, protected shader: WebGLProgram) {
         
     }
+
+    public onlyDrawPhysical = false;
 
     public useShader(): void {
         this.gl.useProgram(this.shader);

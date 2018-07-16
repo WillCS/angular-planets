@@ -2,6 +2,7 @@ import { Drawable } from "../graphics/drawable";
 import { Mesh, MeshBuilder } from "../graphics/mesh";
 import { Vec3 } from "../math/vector";
 import { Mat4 } from "../math/mat4";
+import { Shader } from "../graphics/shader";
 
 export class Axes implements Drawable {
     private axes: Mesh[] = [];
@@ -10,7 +11,7 @@ export class Axes implements Drawable {
 
     }
 
-    public draw(gl: WebGLRenderingContext, shader: WebGLProgram, worldMatrix: Mat4): void {
+    public draw(gl: WebGLRenderingContext, shader: Shader, worldMatrix: Mat4): void {
         this.axes.forEach(axe => {
             axe.draw(shader, worldMatrix);
         });

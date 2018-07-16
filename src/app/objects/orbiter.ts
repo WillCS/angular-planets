@@ -4,6 +4,7 @@ import { Body } from "../objects/body"
 import { Drawable } from "../graphics/drawable";
 import { Mesh, MeshBuilder } from "../graphics/mesh";
 import { Listable } from "../listable";
+import { Shader } from "../graphics/shader";
 
 export abstract class Orbiter implements Drawable, Listable {
     public get rotationVector(): Vec3 {
@@ -20,7 +21,7 @@ export abstract class Orbiter implements Drawable, Listable {
         this.orbitProgress %= Math.PI * 2;
     }
 
-    public abstract draw(gl: WebGLRenderingContext, shader: WebGLProgram, worldMatrix: Mat4): void;
+    public abstract draw(gl: WebGLRenderingContext, shader: Shader, worldMatrix: Mat4): void;
 
     public abstract initDrawing(gl: WebGLRenderingContext): void;
 
@@ -28,6 +29,7 @@ export abstract class Orbiter implements Drawable, Listable {
 }
 
 export class Orbit extends Orbiter {
+    private orbit: Mesh;
     constructor(private body: Body, private parent: Body, radius: number, orbitSpeed: number, 
             rotation: Vec3) {
         super(radius, orbitSpeed, rotation);
@@ -47,14 +49,21 @@ export class Orbit extends Orbiter {
         return this.parent;
     }
 
-    public draw(gl: WebGLRenderingContext, shader: WebGLProgram, worldMatrix: Mat4): void {
+    public draw(gl: WebGLRenderingContext, shader: Shader, worldMatrix: Mat4): void {
         worldMatrix = worldMatrix.rotateByRotationVector(this.rotationVector);
+
+        if(!shader.onlyDrawPhysical) {
+            this.orbit.draw(shader, worldMatrix);
+        }
+
         worldMatrix = worldMatrix.rotateY(this.orbitProgress);
         worldMatrix = worldMatrix.translate(this.radius, 0, 0);
+        //worldMatrix = worldMatrix.rotateByRotationVector(this.rotationVector.negate());
         this.body.draw(gl, shader, worldMatrix);
     }
 
     public initDrawing(gl: WebGLRenderingContext): void {
+        this.orbit = MeshBuilder.buildLoop(gl, 3, this.radius, new Vec3(100, 100, 100));
         this.body.initDrawing(gl);
     }
 
@@ -76,7 +85,7 @@ export class Ring extends Orbiter {
         super.update();
     }
 
-    public draw(gl: WebGLRenderingContext, shader: WebGLProgram, worldMatrix: Mat4): void {
+    public draw(gl: WebGLRenderingContext, shader: Shader, worldMatrix: Mat4): void {
         worldMatrix = worldMatrix.rotateY(this.orbitProgress);
         worldMatrix = worldMatrix.rotateByRotationVector(this.rotationVector);
         this.mesh.draw(shader, worldMatrix);
