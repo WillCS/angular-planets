@@ -1,15 +1,17 @@
-attribute vec4 a_position;
-attribute vec4 a_colour;
-attribute vec4 a_normal;
+attribute vec4 vertexPos;
+attribute vec4 vertexColour;
+attribute vec4 vertexNorm;
  
-uniform mat4 u_matrix;
- 
-varying vec4 v_colour;
-varying vec4 v_normal;
+uniform mat4 model;
+uniform mat4 view;
+uniform mat4 projection;
+
+varying vec4 fragColour;
+varying vec4 fragNorm;
  
 void main() {
-  gl_Position = u_matrix * a_position;
+  gl_Position = projection * view * model * vertexPos;
  
-  v_colour = a_colour;
-  v_normal = a_normal;
+  fragColour = vertexColour;
+  fragNorm = vertexNorm;
 }

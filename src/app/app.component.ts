@@ -8,8 +8,9 @@ import { Body, Star } from './objects/body';
 import { OrbitalCamera } from './camera';
 import { Axes } from './objects/axes';
 import { PlanetService } from './planet.service';
-import { Shader, SkyboxShader } from './graphics/shader';
+import { Shader, SkyboxShader, LightShader } from './graphics/shader';
 import { Skybox } from './graphics/skybox';
+import { Colour3 } from './graphics/colour';
 
 @Component({
   selector: 'app-root',
@@ -36,7 +37,7 @@ export class AppComponent implements OnInit {
   }
 
   private shaderProgram: WebGLProgram;
-  private defaultShader: Shader;
+  private shader: Shader;
   private skybox: Skybox;
   private skyboxShader: Shader;
   
@@ -78,8 +79,9 @@ export class AppComponent implements OnInit {
     this.object.initDrawing(this.gl);
 
     let aspect: number = this.canvas.clientWidth / this.canvas.clientHeight;
-    this.camera = new OrbitalCamera(Mat4.perspectiveProjection(Math.PI / 2, aspect, 1, 1500));
-    this.camera.initDrawing(this.gl);
+    let projection: Mat4 = Mat4.perspectiveProjection(Math.PI / 3, aspect, 1, 5000)
+
+    this.camera = new OrbitalCamera(projection);
     this.camera.minDistance = 50;
     this.camera.maxDistance = 8000;
     this.camera.lookAt(moon, false);
@@ -88,9 +90,13 @@ export class AppComponent implements OnInit {
     this.axes = new Axes(0);
     this.axes.initDrawing(this.gl);
 
-    this.shaderProgram = WebGLHelper.buildShaderProgram(this.gl);
-    this.defaultShader = new Shader(this.gl, this.shaderProgram);
+    this.shader = new Shader(this.gl, WebGLHelper.buildShaderProgram(this.gl, WebGLHelper.DEFAULT_SHADER));
+    //this.shader = new LightShader(this.gl);
+    //(this.shader as LightShader).setAmbient(Colour3.eightBit(255, 255, 255));
+    this.shader.setCamera(this.camera);
+
     this.skyboxShader = new SkyboxShader(this.gl);
+    this.skyboxShader.setCamera(this.camera);
     this.skybox = new Skybox(this.gl);
 
     // Get ready to draw
@@ -140,16 +146,12 @@ export class AppComponent implements OnInit {
     this.gl.enable(this.gl.DEPTH_TEST);
 
     this.gl.useProgram(this.shaderProgram);
-    
-    let aspect: number = this.canvas.clientWidth / this.canvas.clientHeight;
-    let matrix: Mat4 = Mat4.perspectiveProjection(Math.PI / 3, aspect, 1, 10000);
-    //let matrix: Mat4 = Mat4.orthographicProjection(this.canvas.width, this.canvas.height, 1, 1500);
 
-    matrix = matrix.multiply(this.camera.getLookMatrix());
-
-    this.skybox.draw(this.skyboxShader, this.camera);
+    this.skybox.draw(this.skyboxShader);
     
-    this.camera.draw(this.gl, this.defaultShader, matrix);
-    this.object.draw(this.gl, this.defaultShader, matrix);
+    this.shader.useShader();
+    this.shader.setUniforms();
+
+    this.object.draw(this.gl, this.shader, Mat4.identity());
   }
 }

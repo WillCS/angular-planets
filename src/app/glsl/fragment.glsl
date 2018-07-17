@@ -1,8 +1,8 @@
 precision mediump float;
  
-varying vec4 v_colour;
-varying vec4 v_normal;
+varying vec4 fragColour;
+varying vec4 fragNorm;
  
 void main() {
-   gl_FragColor = v_colour;
+   gl_FragColor = fragColour;
 }

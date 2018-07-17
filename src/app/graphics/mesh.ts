@@ -59,47 +59,29 @@ export class Mesh {
             colour: boolean = this.hasColours, normal: boolean = this.hasNormals): void {
         shader.useShader();
 
-        let positionLocation: number = shader.getAttributeLocation('a_position');
-        this.gl.enableVertexAttribArray(positionLocation);
-        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertexBuffer);
         let vertexSize: number = 3;
         let vertexType: number = this.gl.FLOAT;
-        let vertexNormalize: boolean = false;
-        let vertexStride: number = 0;
-        let vertexOffset: number = 0;
-        this.gl.vertexAttribPointer(positionLocation, 
-                vertexSize, vertexType, vertexNormalize, vertexStride, vertexOffset);
+        shader.setAttributeArray('vertexPos', this.vertexBuffer,
+                vertexSize, vertexType);
 
-        this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
+        shader.setIndexArray(this.indexBuffer);
 
         if(colour) {
-            let colourLocation: number = shader.getAttributeLocation('a_colour');
-            this.gl.enableVertexAttribArray(colourLocation);
-            this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.colourBuffer);
             let colourSize: number = 3;
             let colourType: number = this.gl.UNSIGNED_BYTE;
             let colourNormalize: boolean = true;
-            let colourStride: number = 0;
-            let colourOffset: number = 0;
-            this.gl.vertexAttribPointer(colourLocation,
-                    colourSize, colourType, colourNormalize, colourStride, colourOffset);
+            shader.setAttributeArray('vertexColour', this.colourBuffer, 
+                    colourSize, colourType, colourNormalize);
         }
 
         if(normal) {
-            let normalLocation: number = shader.getAttributeLocation('a_normal');
-            this.gl.enableVertexAttribArray(normalLocation);
-            this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.normalBuffer);
             let normalSize: number = 3;
             let normalType: number = this.gl.FLOAT;
-            let normalNomalize: boolean = false;
-            let normalStride: number = 0;
-            let normalOffset: number = 0;
-            this.gl.vertexAttribPointer(normalLocation,
-                    normalSize, normalType, normalNomalize, normalStride, normalOffset);
+            shader.setAttributeArray('vertexNorm', this.normalBuffer, 
+                    normalSize, normalType);
         }
 
-        let matrixLocation: WebGLUniformLocation = shader.getUniformLocation("u_matrix");
-        this.gl.uniformMatrix4fv(matrixLocation, false, worldMatrix.forGL());
+        shader.setModel(worldMatrix);
 
         let indexType: number = this.gl.UNSIGNED_SHORT;
         let indexOffset: number = 0;
@@ -133,6 +115,7 @@ export module MeshBuilder {
         let geometry: number[] = [];
         let indices: number[] = [];
         let colours: number[] = [];
+        let normals: number[] = [];
         let n = Math.floor(32 * lod * (endAngle - startAngle) / (2 * Math.PI));
 
         let index: number = 0;
@@ -146,12 +129,14 @@ export module MeshBuilder {
                 colours.push(innerColour.x, innerColour.y, innerColour.z);
             }
             geometry.push(innerPoint.x, innerPoint.y, innerPoint.z);
+            normals.push(0, 1, 0);
             indices.push(index++);
 
             if(outerColour) {
                 colours.push(outerColour.x, outerColour.y, outerColour.z);
             }
             geometry.push(outerPoint.x, outerPoint.y, outerPoint.z);
+            normals.push(0, 1, 0);
             indices.push(index++);
         }
 
@@ -165,18 +150,21 @@ export module MeshBuilder {
                 colours.push(innerColour.x, innerColour.y, innerColour.z);
             }
             geometry.push(innerPoint.x, innerPoint.y, innerPoint.z);
+            normals.push(0, -1, 0);
             indices.push(index++);
 
             if(outerColour) {
                 colours.push(outerColour.x, outerColour.y, outerColour.z);
             }
             geometry.push(outerPoint.x, outerPoint.y, outerPoint.z);
+            normals.push(0, -1, 0);
             indices.push(index++);
         }
         
         let mesh: Mesh = new Mesh(gl);
         mesh.setVertices(geometry);
         mesh.setIndices(indices);
+        mesh.setNormals(normals);
         if(innerColour && outerColour) {
             mesh.setColours(colours);
         }
@@ -305,6 +293,7 @@ export module MeshBuilder {
         let mesh: Mesh = new Mesh(gl);
         mesh.setDrawMode(gl.TRIANGLES);
         mesh.setVertices(geometry);
+        mesh.setNormals(geometry);
         mesh.setColours(colours);
         mesh.setIndices(geometryIndices);
 

@@ -1,12 +1,24 @@
 declare var require: any;
-const vertexShaderSource = require('raw-loader!glslify-loader!../glsl/vertex.glsl');
-const fragmentShaderSource = require('raw-loader!glslify-loader!../glsl/fragment.glsl');
-
-
-const skyboxVertSource = require('raw-loader!glslify-loader!../glsl/skyboxVert.glsl');
-const skyboxFragSource = require('raw-loader!glslify-loader!../glsl/skyboxFrag.glsl');
+const shaderSource = {
+    skybox: {
+        vertex:   require('raw-loader!../glsl/skyboxVert.glsl'),
+        fragment: require('raw-loader!../glsl/skyboxFrag.glsl')
+    },
+    light: {
+        vertex:   require('raw-loader!../glsl/globalLightVert.glsl'),
+        fragment: require('raw-loader!../glsl/globalLightFrag.glsl')
+    },
+    default: {
+        vertex:   require('raw-loader!../glsl/vertex.glsl'),
+        fragment: require('raw-loader!../glsl/fragment.glsl')
+    }
+};
 
 export let WebGLHelper = {
+    SKYBOX_SHADER:  'skybox',
+    LIGHT_SHADER:   'light',
+    DEFAULT_SHADER: 'default',
+
     setupCanvas(canvas: HTMLCanvasElement): WebGLRenderingContext {
         let gl: WebGLRenderingContext = canvas.getContext('webgl');
 
@@ -47,39 +59,14 @@ export let WebGLHelper = {
         }
     },
 
-    buildShaderProgram(gl: WebGLRenderingContext): WebGLProgram {
+    buildShaderProgram(gl: WebGLRenderingContext, shader: string): WebGLProgram {
         let vertexShader: WebGLShader;
         let fragmentShader: WebGLShader;
         try {
             vertexShader = 
-                    this.compileShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
+                    this.compileShader(gl, gl.VERTEX_SHADER, shaderSource[shader].vertex);
             fragmentShader = 
-                    this.compileShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
-        } catch(error) {
-            console.log('Shaders failed to compile.');
-        }
-
-        let program: WebGLProgram;
-
-        if(vertexShader && fragmentShader) {
-            try {
-                program = this.createShaderProgram(gl, vertexShader, fragmentShader);
-            } catch(error) {
-                console.log('Shaders compiled but failed to link.');
-            }
-        }
-
-        return program;
-    },
-    
-    buildSkyboxShader(gl: WebGLRenderingContext): WebGLProgram {
-        let vertexShader: WebGLShader;
-        let fragmentShader: WebGLShader;
-        try {
-            vertexShader = 
-                    this.compileShader(gl, gl.VERTEX_SHADER, skyboxVertSource);
-            fragmentShader = 
-                    this.compileShader(gl, gl.FRAGMENT_SHADER, skyboxFragSource);
+                    this.compileShader(gl, gl.FRAGMENT_SHADER, shaderSource[shader].fragment);
         } catch(error) {
             console.log('Shaders failed to compile.');
         }

@@ -74,24 +74,13 @@ export class Skybox {
         this.gl.bufferData(gl.ARRAY_BUFFER, Skybox.vertices, gl.STATIC_DRAW);
     }
 
-    public draw(shader: Shader, camera: Camera3D): void {
+    public draw(shader: Shader): void {
         shader.useShader();
+        shader.setUniforms();
 
-        let viewLocation: WebGLUniformLocation = shader.getUniformLocation("view");
-        this.gl.uniformMatrix4fv(viewLocation, false, camera.getLookMatrix().forGL());
-        let projectionLocation: WebGLUniformLocation = shader.getUniformLocation("projection");
-        this.gl.uniformMatrix4fv(projectionLocation, false, camera.getProjectionMatrix().forGL());
-
-        let vertexLocation: number = shader.getAttributeLocation("a_pos");
-        this.gl.enableVertexAttribArray(vertexLocation);
-        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffer);
         let vertexSize: number = 3;
         let vertexType: number = this.gl.FLOAT;
-        let vertexNormalize: boolean = false;
-        let vertexStride: number = 0;
-        let vertexOffset: number = 0;
-        this.gl.vertexAttribPointer(vertexLocation, 
-                vertexSize, vertexType, vertexNormalize, vertexStride, vertexOffset);
+        shader.setAttributeArray('vertexPos', this.buffer, vertexSize, vertexType);
 
         this.gl.activeTexture(this.gl.TEXTURE0);
         this.gl.bindTexture(this.gl.TEXTURE_CUBE_MAP, this.texture);
