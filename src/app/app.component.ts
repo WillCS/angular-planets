@@ -60,33 +60,30 @@ export class AppComponent implements OnInit {
     this.canvas.height = 1000;
     this.gl = WebGLHelper.setupCanvas(this.canvas);
 
-    let body = new Star(Vec3.zero(), 0, Math.PI / 30, 150, Colour3.eightBit(255, 216, 167));
+    let sun = new Star(Vec3.zero(), 0, Math.PI / 3000, 500, Colour3.normal(1, 1, 1));
+
+    let saturn = new Planet(new Vec3(0, 0, Math.PI / 6), 0, Math.PI / 30, 150, Colour3.eightBit(255, 216, 167));
     for(let i = 1; i < 9; i++) {
-      body.addOrbiter(new Ring(this.rings[i * 8], this.rings[i * 8 + 1], 0, Vec3.zero(), 
+      saturn.addOrbiter(new Ring(this.rings[i * 8], this.rings[i * 8 + 1], 0, Vec3.zero(), 
           Colour3.eightBit(this.rings[i * 8 + 2], this.rings[i * 8 + 3], this.rings[i * 8 + 4]), 
           Colour3.eightBit(this.rings[i * 8 + 5], this.rings[i * 8 + 6], this.rings[i * 8 + 7])));
     }
 
-    let moon = new Planet(Vec3.zero(), 0, 0, 25, Colour3.eightBit(232, 203, 101));
-    moon.addOrbiter(new Ring(40, 50, 0, new Vec3(0, 0, Math.PI / 3), 
-        Colour3.normal(0.2, 0.4, 0.6), Colour3.normal(0.2, 0.4, 0.6)));
+    
+    sun.addOrbiter(new Orbit(saturn, sun, 5000, Math.PI / 10000, Vec3.zero()));
 
-    body.addOrbiter(new Orbit(
-      moon, body, 2000, Math.PI / 10000, new Vec3(0, 0, 0))
-    );
+    this.planetService.addBody(sun);
 
-    this.planetService.addBody(body);
-
-    this.object = body;
+    this.object = sun;
     this.object.initDrawing(this.gl);
 
     let aspect: number = this.canvas.clientWidth / this.canvas.clientHeight;
-    let projection: Mat4 = Mat4.perspectiveProjection(Math.PI / 3, aspect, 1, 5000)
+    let projection: Mat4 = Mat4.perspectiveProjection(Math.PI / 3, aspect, 1, 50000)
 
     this.camera = new OrbitalCamera(projection);
     this.camera.minDistance = 50;
     this.camera.maxDistance = 8000;
-    this.camera.lookAt(moon, false);
+    this.camera.lookAt(saturn, false);
     this.camera.setDistance(200, false);
 
     this.axes = new Axes(0);
@@ -95,7 +92,7 @@ export class AppComponent implements OnInit {
     //this.shader = new Shader(this.gl, WebGLHelper.buildShaderProgram(this.gl, WebGLHelper.DEFAULT_SHADER));
     this.shader = new LightShader(this.gl);
     (this.shader as LightShader).setAmbient(Colour3.eightBit(0, 0, 0));
-    (this.shader as LightShader).addLight(body);
+    (this.shader as LightShader).addLight(sun);
     this.shader.setCamera(this.camera);
 
     this.skyboxShader = new SkyboxShader(this.gl);

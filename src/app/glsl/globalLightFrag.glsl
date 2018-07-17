@@ -1,6 +1,8 @@
 precision mediump float;
 
-#define MAX_LIGHTS 8
+#define MAX_LIGHTS 1
+
+#define GAMMA 2.2
 
 varying vec3 fragColour;
 varying vec3 fragNorm;
@@ -82,11 +84,15 @@ void main() {
         // ATTENUATION
         float attenuation = 1.0;
         if(light.attenuation > 0.0) {
-            attenuation = light.attenuation / (dist * dist);
+            attenuation = light.attenuation / dist;
         }
         
         lightColour += (diffuse + specular) * attenuation;
     }
 
-    gl_FragColor = vec4(getFragColour() * lightColour, 1);
+    vec3 finalColour = getFragColour() * lightColour;
+
+    vec3 gammaCorrected = pow(finalColour, vec3(1.0/GAMMA));
+
+    gl_FragColor = vec4(gammaCorrected, 1);
 }
