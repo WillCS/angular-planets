@@ -1,6 +1,7 @@
 import { Vec3 } from "../math/vector";
 import { Mat4 } from "../math/mat4";
 import { Shader } from "./shader";
+import { Colour3 } from "./colour";
 
 export class Mesh {
     private vertexBuffer: WebGLBuffer; 
@@ -47,7 +48,7 @@ export class Mesh {
         this.hasColours = true;
         this.colourBuffer = this.gl.createBuffer();
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.colourBuffer);
-        this.gl.bufferData(this.gl.ARRAY_BUFFER, new Uint8Array(colours), 
+        this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(colours), 
             this.gl.STATIC_DRAW);
     }
 
@@ -68,7 +69,7 @@ export class Mesh {
 
         if(colour) {
             let colourSize: number = 3;
-            let colourType: number = this.gl.UNSIGNED_BYTE;
+            let colourType: number = this.gl.FLOAT;
             let colourNormalize: boolean = true;
             shader.setAttributeArray('vertexColour', this.colourBuffer, 
                     colourSize, colourType, colourNormalize);
@@ -111,7 +112,7 @@ export module MeshBuilder {
     export function buildRing(gl: WebGLRenderingContext, lod: number, 
             innerRadius: number, outerRadius: number, 
             startAngle: number = 0, endAngle: number = 2 * Math.PI,
-            innerColour: Vec3 = null, outerColour: Vec3 = null): Mesh {
+            innerColour: Colour3 = null, outerColour: Colour3 = null): Mesh {
         let geometry: number[] = [];
         let indices: number[] = [];
         let colours: number[] = [];
@@ -126,14 +127,14 @@ export module MeshBuilder {
             let outerPoint: Vec3 = dir.multiply(outerRadius);
 
             if(innerColour) {
-                colours.push(innerColour.x, innerColour.y, innerColour.z);
+                colours.push(innerColour.r, innerColour.g, innerColour.b);
             }
             geometry.push(innerPoint.x, innerPoint.y, innerPoint.z);
             normals.push(0, 1, 0);
             indices.push(index++);
 
             if(outerColour) {
-                colours.push(outerColour.x, outerColour.y, outerColour.z);
+                colours.push(outerColour.r, outerColour.g, outerColour.b);
             }
             geometry.push(outerPoint.x, outerPoint.y, outerPoint.z);
             normals.push(0, 1, 0);
@@ -147,14 +148,14 @@ export module MeshBuilder {
             let outerPoint: Vec3 = dir.multiply(outerRadius);
 
             if(innerColour) {
-                colours.push(innerColour.x, innerColour.y, innerColour.z);
+                colours.push(innerColour.r, innerColour.g, innerColour.b);
             }
             geometry.push(innerPoint.x, innerPoint.y, innerPoint.z);
             normals.push(0, -1, 0);
             indices.push(index++);
 
             if(outerColour) {
-                colours.push(outerColour.x, outerColour.y, outerColour.z);
+                colours.push(outerColour.r, outerColour.g, outerColour.b);
             }
             geometry.push(outerPoint.x, outerPoint.y, outerPoint.z);
             normals.push(0, -1, 0);
@@ -173,7 +174,7 @@ export module MeshBuilder {
     }
 
     export function buildLoop(gl: WebGLRenderingContext, lod: number, 
-            radius: number, colour: Vec3): Mesh {
+            radius: number, colour: Colour3): Mesh {
         let mesh: Mesh = new Mesh(gl);
         let geometry: number[] = [];
         let indices: number[]  = [];
@@ -184,7 +185,7 @@ export module MeshBuilder {
         for(let i = 0; i < n + 1; i++) {
             geometry.push(radius * Math.cos(2 * Math.PI * i / n), 0, radius * Math.sin(2 * Math.PI * i / n));
             indices.push(index++);
-            colours.push(colour.x, colour.y, colour.z);
+            colours.push(colour.r, colour.g, colour.b);
         }
 
         mesh.setDrawMode(gl.LINE_STRIP);
@@ -196,11 +197,11 @@ export module MeshBuilder {
     }
 
     export function buildIcosphere(gl: WebGLRenderingContext, lod: number, 
-            colour: Vec3 = null): Mesh {
+            colour: Colour3 = null): Mesh {
         let points: Vec3[] = [];
         let index: number = 0;
         if(!colour) {
-            colour = new Vec3(0, 0, 0);
+            colour = Colour3.normal(0, 0, 0);
         }
         
         let t: number = (1 + Math.sqrt(5)) / 2;
@@ -279,15 +280,15 @@ export module MeshBuilder {
             let p1: Vec3 = points[tri.p1];
             geometry.push(p1.x, p1.y, p1.z);
             geometryIndices.push(geometryIndex++);
-            colours.push(colour.x, colour.y, colour.z);
+            colours.push(colour.r, colour.g, colour.b);
             let p2: Vec3 = points[tri.p2];
             geometry.push(p2.x, p2.y, p2.z);
             geometryIndices.push(geometryIndex++);
-            colours.push(colour.x, colour.y, colour.z);
+            colours.push(colour.r, colour.g, colour.b);
             let p3: Vec3 = points[tri.p3];
             geometry.push(p3.x, p3.y, p3.z);
             geometryIndices.push(geometryIndex++);
-            colours.push(colour.x, colour.y, colour.z);
+            colours.push(colour.r, colour.g, colour.b);
         });
 
         let mesh: Mesh = new Mesh(gl);
@@ -300,7 +301,7 @@ export module MeshBuilder {
         return mesh;
     }
 
-    export function buildLines(gl: WebGLRenderingContext, lines: Vec3[], colour: Vec3): Mesh {
+    export function buildLines(gl: WebGLRenderingContext, lines: Vec3[], colour: Colour3): Mesh {
         let mesh: Mesh = new Mesh(gl);
         let geometry: number[] = [];
         let indices: number[]  = [];
@@ -309,7 +310,7 @@ export module MeshBuilder {
         lines.forEach(line => {
             geometry.push(line.x, line.y, line.z);
             indices.push(index++);
-            colours.push(colour.x, colour.y, colour.z);
+            colours.push(colour.r, colour.g, colour.b);
         });
 
         mesh.setDrawMode(gl.LINES);

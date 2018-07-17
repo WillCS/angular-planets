@@ -1,5 +1,5 @@
 export class Colour3 {
-    private constructor(private r: number, private g: number, private b: number) {
+    private constructor(public readonly r: number, public readonly g: number, public readonly b: number) {
 
     }
 

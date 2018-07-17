@@ -5,6 +5,7 @@ import { Drawable } from "../graphics/drawable";
 import { Mesh, MeshBuilder } from "../graphics/mesh";
 import { Listable } from "../listable";
 import { Shader } from "../graphics/shader";
+import { Colour3 } from "../graphics/colour";
 
 export abstract class Orbiter implements Drawable, Listable {
     public get rotationVector(): Vec3 {
@@ -63,7 +64,7 @@ export class Orbit extends Orbiter {
     }
 
     public initDrawing(gl: WebGLRenderingContext): void {
-        this.orbit = MeshBuilder.buildLoop(gl, 3, this.radius, new Vec3(100, 100, 100));
+        this.orbit = MeshBuilder.buildLoop(gl, 3, this.radius, Colour3.eightBit(100, 100, 100));
         this.body.initDrawing(gl);
     }
 
@@ -76,7 +77,7 @@ export class Ring extends Orbiter {
     private mesh: Mesh;
     constructor(private innerRadius: number, private outerRadius: number, 
             orbitSpeed: number, rotation: Vec3,
-            private innerColour: Vec3, private outerColour: Vec3,
+            private innerColour: Colour3, private outerColour: Colour3,
             private startAngle: number = 0, private endAngle: number = 2 * Math.PI) {
         super((outerRadius + innerRadius) / 2, orbitSpeed, rotation);
     }
@@ -88,6 +89,13 @@ export class Ring extends Orbiter {
     public draw(gl: WebGLRenderingContext, shader: Shader, worldMatrix: Mat4): void {
         worldMatrix = worldMatrix.rotateY(this.orbitProgress);
         worldMatrix = worldMatrix.rotateByRotationVector(this.rotationVector);
+
+        shader.setFloat3('ambientColour', Colour3.normal(0, 0, 0));
+        shader.setFloat('specularReflection', 1);
+        shader.setFloat('ambientReflection', 1);
+        shader.setFloat('diffuseReflection', 1);
+        shader.setFloat('shininess', 32);
+
         this.mesh.draw(shader, worldMatrix);
     }
 

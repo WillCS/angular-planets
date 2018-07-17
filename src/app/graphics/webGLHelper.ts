@@ -85,7 +85,9 @@ export let WebGLHelper = {
     },
 
     resizeCanvasToWindowSize(canvas: HTMLCanvasElement): void {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
+        let pixelRatio: number = window.devicePixelRatio;
+
+        canvas.width = Math.floor(window.innerWidth * pixelRatio);
+        canvas.height = Math.floor(window.innerHeight * pixelRatio);
     }
 }

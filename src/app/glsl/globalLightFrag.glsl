@@ -6,11 +6,11 @@ varying vec3 fragColour;
 varying vec3 fragNorm;
 varying vec3 fragPos;
 
-varying vec3 fragAmbientColour;
-varying float fragSpecularReflection;
-varying float fragDiffuseReflection;
-varying float fragAmbientReflection;
-varying float fragShininess;
+uniform vec3 ambientColour;
+uniform float specularReflection;
+uniform float diffuseReflection;
+uniform float ambientReflection;
+uniform float shininess;
 
 uniform vec3 cameraPos;
 
@@ -27,24 +27,34 @@ uniform lightSource lights[MAX_LIGHTS];
 
 /** Ambient map */
 vec3 getAmbientColour() {
-    return fragAmbientColour;
+    return ambientColour;
+}
+
+/** Normal map */
+vec3 getFragNormal() {
+    return fragNorm;
+}
+
+/** Texture map */
+vec3 getFragColour() {
+    return fragColour;
 }
 
 /** Reflection map */
 float getSpecularReflection() {
-    return fragSpecularReflection;
+    return specularReflection;
 }
 
 float getDiffuseReflection() {
-    return fragDiffuseReflection;
+    return diffuseReflection;
 }
 
 float getAmbientReflection() {
-    return fragAmbientReflection;
+    return ambientReflection;
 }
 
 float getShininess() {
-    return fragShininess;
+    return shininess;
 }
 
 void main() {
@@ -53,22 +63,30 @@ void main() {
     for(int i = 0; i < MAX_LIGHTS; i++) {
         lightSource light = lights[i];
 
-        vec3 lightDir = normalize(light.position - fragPos);
+        vec3 normal = normalize(getFragNormal());
+        vec3 lightDir = light.position - fragPos;
+        float dist = length(lightDir);
+        lightDir = normalize(lightDir);
 
-        float diffuseDot = dot(lightDir, fragNorm);
+        // DIFFUSE
+        float diffusePower = max(dot(normal, lightDir), 0.0);
+        vec3 diffuse = getDiffuseReflection() * diffusePower * light.diffuseColour;
 
-        if(diffuseDot > 0.0) {
-            lightColour += getDiffuseReflection() * diffuseDot * light.diffuseColour;
+        vec3 viewDir = normalize(cameraPos - fragPos);
+        vec3 halfwayDir = normalize(lightDir + viewDir);
 
-            vec3 viewDir = normalize(cameraPos - fragPos);
-            vec3 halfwayDir = normalize(lightDir + viewDir);
-            float specularDot = dot(fragNorm, halfwayDir);
+        // SPECULAR
+        float specularPower = pow(max(dot(normal, halfwayDir), 0.0), getShininess());
+        vec3 specular = getSpecularReflection() * specularPower * light.specularColour;
 
-            if(specularDot > 0.0) {
-                lightColour += getSpecularReflection() * pow(diffuseDot, getShininess()) * light.specularColour;
-            }
+        // ATTENUATION
+        float attenuation = 1.0;
+        if(light.attenuation > 0.0) {
+            attenuation = light.attenuation / (dist * dist);
         }
+        
+        lightColour += (diffuse + specular) * attenuation;
     }
 
-    gl_FragColor = vec4(fragColour * lightColour, 1);
+    gl_FragColor = vec4(getFragColour() * lightColour, 1);
 }

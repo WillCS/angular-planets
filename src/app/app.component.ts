@@ -4,7 +4,7 @@ import { WebGLHelper } from './graphics/webGLHelper';
 import { Mat4 } from './math/mat4';
 import { Ring, Orbit, Orbiter } from './objects/orbiter';
 import { Vec3 } from './math/vector';
-import { Body, Star } from './objects/body';
+import { Body, Star, Planet } from './objects/body';
 import { OrbitalCamera } from './camera';
 import { Axes } from './objects/axes';
 import { PlanetService } from './planet.service';
@@ -60,17 +60,19 @@ export class AppComponent implements OnInit {
     this.canvas.height = 1000;
     this.gl = WebGLHelper.setupCanvas(this.canvas);
 
-    let body = new Star(Vec3.zero(), 0, Math.PI / 30, 150, new Vec3(255, 216, 167));
+    let body = new Star(Vec3.zero(), 0, Math.PI / 30, 150, Colour3.eightBit(255, 216, 167));
     for(let i = 1; i < 9; i++) {
       body.addOrbiter(new Ring(this.rings[i * 8], this.rings[i * 8 + 1], 0, Vec3.zero(), 
-          new Vec3(this.rings[i * 8 + 2], this.rings[i * 8 + 3], this.rings[i * 8 + 4]), 
-          new Vec3(this.rings[i * 8 + 5], this.rings[i * 8 + 6], this.rings[i * 8 + 7])));
+          Colour3.eightBit(this.rings[i * 8 + 2], this.rings[i * 8 + 3], this.rings[i * 8 + 4]), 
+          Colour3.eightBit(this.rings[i * 8 + 5], this.rings[i * 8 + 6], this.rings[i * 8 + 7])));
     }
 
-    let moon = new Star(Vec3.zero(), 0, 0, 25, new Vec3(232, 203, 101));
+    let moon = new Planet(Vec3.zero(), 0, 0, 25, Colour3.eightBit(232, 203, 101));
+    moon.addOrbiter(new Ring(40, 50, 0, new Vec3(0, 0, Math.PI / 3), 
+        Colour3.normal(0.2, 0.4, 0.6), Colour3.normal(0.2, 0.4, 0.6)));
 
     body.addOrbiter(new Orbit(
-      moon, body, 2000, Math.PI / 100000, new Vec3(0, 0, 0))
+      moon, body, 2000, Math.PI / 10000, new Vec3(0, 0, 0))
     );
 
     this.planetService.addBody(body);
@@ -90,9 +92,10 @@ export class AppComponent implements OnInit {
     this.axes = new Axes(0);
     this.axes.initDrawing(this.gl);
 
-    this.shader = new Shader(this.gl, WebGLHelper.buildShaderProgram(this.gl, WebGLHelper.DEFAULT_SHADER));
-    //this.shader = new LightShader(this.gl);
-    //(this.shader as LightShader).setAmbient(Colour3.eightBit(255, 255, 255));
+    //this.shader = new Shader(this.gl, WebGLHelper.buildShaderProgram(this.gl, WebGLHelper.DEFAULT_SHADER));
+    this.shader = new LightShader(this.gl);
+    (this.shader as LightShader).setAmbient(Colour3.eightBit(0, 0, 0));
+    (this.shader as LightShader).addLight(body);
     this.shader.setCamera(this.camera);
 
     this.skyboxShader = new SkyboxShader(this.gl);
@@ -144,6 +147,8 @@ export class AppComponent implements OnInit {
 
     this.gl.enable(this.gl.CULL_FACE);
     this.gl.enable(this.gl.DEPTH_TEST);
+    this.gl.enable(this.gl.BLEND);
+    this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
 
     this.gl.useProgram(this.shaderProgram);
 

@@ -111,7 +111,7 @@ export class LightShader extends Shader {
 
     public setUniforms(): void {
         super.setUniforms();
-        this.setFloat3('ambientColour', this.ambient);
+        this.setFloat3('globalAmbient', this.ambient);
 
         this.setFloat3('cameraPos', this.camera.location);
         

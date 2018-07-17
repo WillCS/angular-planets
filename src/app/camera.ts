@@ -5,6 +5,7 @@ import { MathHelper } from './math/mathHelper';
 import { Drawable } from './graphics/drawable';
 import { Mesh, MeshBuilder } from './graphics/mesh';
 import { Shader } from './graphics/shader';
+import { Colour3 } from './graphics/colour';
 
 export abstract class Camera3D implements Drawable {
     public abstract get location(): Vec3;
@@ -40,11 +41,11 @@ export abstract class Camera3D implements Drawable {
     }
 
     initDrawing(gl: WebGLRenderingContext): void {
-        this.mesh = MeshBuilder.buildIcosphere(gl, 0, new Vec3(100, 100, 100));
+        this.mesh = MeshBuilder.buildIcosphere(gl, 0, Colour3.eightBit(100, 100, 100));
         this.arrows.push(
-            MeshBuilder.buildLines(gl, [new Vec3(0, 0, 0), new Vec3(1, 1, 1)], new Vec3(0, 255, 0)),
-            MeshBuilder.buildLines(gl, [new Vec3(0 ,0 ,0), new Vec3(1, 1, 1)], new Vec3(0, 0, 255)),
-            MeshBuilder.buildLines(gl, [new Vec3(0 ,0 ,0), new Vec3(1, 1, 1)], new Vec3(255, 0, 0)),
+            MeshBuilder.buildLines(gl, [new Vec3(0, 0, 0), new Vec3(1, 1, 1)], Colour3.eightBit(0, 255, 0)),
+            MeshBuilder.buildLines(gl, [new Vec3(0 ,0 ,0), new Vec3(1, 1, 1)], Colour3.eightBit(0, 0, 255)),
+            MeshBuilder.buildLines(gl, [new Vec3(0 ,0 ,0), new Vec3(1, 1, 1)], Colour3.eightBit(255, 0, 0)),
         );
     }
 }
