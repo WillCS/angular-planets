@@ -48,8 +48,8 @@ float getShininess() {
 }
 
 void main() {
-    vec3 lightColour = getAmbientColour() + getAmbientReflection() * globalAmbient
-;
+    vec3 lightColour = getAmbientColour() + getAmbientReflection() * globalAmbient;
+
     for(int i = 0; i < MAX_LIGHTS; i++) {
         lightSource light = lights[i];
 
