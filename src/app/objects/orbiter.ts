@@ -59,6 +59,7 @@ export class Orbit extends Orbiter {
 
         worldMatrix = worldMatrix.rotateY(this.orbitProgress);
         worldMatrix = worldMatrix.translate(this.radius, 0, 0);
+        worldMatrix = worldMatrix.rotateY(-this.orbitProgress);
         //worldMatrix = worldMatrix.rotateByRotationVector(this.rotationVector.negate());
         this.body.draw(gl, shader, worldMatrix);
     }
