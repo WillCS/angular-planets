@@ -216,12 +216,20 @@ export class Mat4 {
         return this.multiply(Mat4.zRotationMatrix(theta));
     }
 
-    public rotateYawPitchRoll(yaw: number, pitch: number, roll: number): Mat4 {
+    public rotateByEulerAngles(yaw: number, pitch: number, roll: number): Mat4 {
         return this.rotateY(yaw).rotateZ(pitch).rotateX(roll);
     }
 
-    public rotateByRotationVector(rotationVector: Vec3): Mat4 {
-        return this.rotateYawPitchRoll(rotationVector.y, rotationVector.z, rotationVector.x);
+    public static fromEulerAngles(yaw: number, pitch: number, roll: number): Mat4 {
+        return Mat4.identity().rotateByEulerAngles(yaw, pitch, roll);
+    }
+
+    public rotateByEulerAnglesVec(angles: Vec3): Mat4 {
+        return this.rotateByEulerAngles(angles.y, angles.z, angles.x);
+    }
+
+    public static fromEulerAnglesVec(angles: Vec3): Mat4 {
+        return Mat4.identity().rotateByEulerAnglesVec(angles);
     }
 
     public static perspectiveProjection(fov: number, aspect: number, 

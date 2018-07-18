@@ -1,70 +1,43 @@
 import { Vec3, Vec4 } from "../math/vector";
 import { Mat4 } from "../math/mat4";
-import { Drawable } from "../graphics/drawable";
-import { Orbiter, Orbit } from "./orbiter";
+import { Orbiter } from "./orbiter";
 import { Mesh, MeshBuilder } from "../graphics/mesh";
-import { Listable } from "../listable";
 import { Shader } from "../graphics/shader";
 import { LightSource } from "../graphics/lightSource";
 import { Colour3 } from "../graphics/colour";
+import { Orbit } from "./orbit";
 
-export abstract class Body implements Drawable, Listable {
+export abstract class Body implements Orbiter {
     protected orbiters: Orbiter[] = [];
-    public orbit: Orbit;
-    public parent: Body;
+    protected location: Vec3;
 
-    constructor(protected posVector: Vec3, protected rotVector: Vec3) {
-
-    }
-
-    public getLocalTransform(): Mat4 {
-        if(this.parent) {
-            return Mat4.identity()
-                    .rotateByRotationVector(this.orbit.rotationVector)
-                    .rotateY(this.orbit.orbitProgress)
-                    .translate(this.orbit.radius, 0, 0);
-        } else {
-            return Mat4.translationMatrix(this.posVector.x, this.posVector.y, this.posVector.z);
+    constructor(protected orientation: Vec3, public orbit: Orbit, public parent: Body) {
+        if(parent) {
+            parent.addOrbiter(this);
         }
     }
 
-    public getTransform(): Mat4 {
-        if(this.parent) {
-            return this.parent.getTransform().multiply(this.getLocalTransform());
-        } else {
-            return this.getLocalTransform();
-        }
+    public abstract get name(): string;
+
+    public get orbitEulerAngles(): Vec3 {
+        return this.orbit.eulerAngles;
+    }
+
+    public get orbitTransform(): Mat4 {
+        return this.orbit.transform;
     }
 
     public get position(): Vec3 {
-        if(this.parent) {
-            return this.getTransform().multiply(new Vec4(1, 1, 1, 1)).toVec3();
+        if(this.hasParent()) {
+            let parentPos: Vec3 = this.parent.position;
+            return parentPos.add(this.orbitTransform.multiply(Vec4.one()).toVec3());
         } else {
-            return this.localPosition;
+            return this.location;
         }
     }
 
-    protected get localPosition(): Vec3 {
-        if(this.parent) {
-            return new Vec3(
-                this.orbit.radius * Math.sin(this.orbit.orbitProgress), 
-                0, 
-                this.orbit.radius * Math.cos(this.orbit.orbitProgress));
-        } else {
-            return this.posVector;
-        }
-    }
-
-    private get cumulativeTilt(): Mat4 {
-        if(this.parent) {
-            return Mat4.identity().rotateYawPitchRoll(0, this.rotation.y, 0);
-        } else {
-            return this.parent.cumulativeTilt.rotateByRotationVector(this.rotation);
-        }
-    }
-
-    public get rotation(): Vec3 {
-        return this.rotVector;
+    public get bodyEulerAngles(): Vec3 {
+        return this.orientation;
     }
 
     public addOrbiter(orbiter: Orbiter) {
@@ -75,7 +48,14 @@ export abstract class Body implements Drawable, Listable {
         return this.orbiters;
     }
 
+    public hasParent(): boolean {
+        return !!this.parent;
+    }
+
     public update() {
+        if(this.hasParent()) {
+            this.orbit.update();
+        }
         this.orbiters.forEach(orbiter => {
             orbiter.update();
         });
@@ -83,7 +63,7 @@ export abstract class Body implements Drawable, Listable {
 
     public draw(gl: WebGLRenderingContext, shader: Shader, worldMatrix: Mat4): void {
         this.orbiters.forEach(orbiter => {
-            orbiter.draw(gl, shader, worldMatrix.copy());
+            orbiter.draw(gl, shader, worldMatrix.multiply(orbiter.orbitTransform));
         });
     }
 
@@ -92,15 +72,15 @@ export abstract class Body implements Drawable, Listable {
             orbiter.initDrawing(gl);
         })
     }
-
-    public abstract getName(): string;
 }
 
 export class Planet extends Body {
     private mesh: Mesh;
-    constructor(rotationVector: Vec3, private bodyRotation: number, private rotationSpeed: number,
-            private radius: number, private colour: Colour3) {
-        super(Vec3.zero(), rotationVector);
+
+    constructor(orientation: Vec3, private bodyRotation: number, private rotationSpeed: number,
+            private radius: number, private colour: Colour3,
+            orbit: Orbit, parent: Body) {
+        super(orientation, orbit, parent);
     }
 
     public update() {
@@ -109,9 +89,11 @@ export class Planet extends Body {
         this.bodyRotation %= 2 * Math.PI;
     }
 
-    public draw(gl: WebGLRenderingContext, shader: Shader, worldMatrix: Mat4): void {
-        worldMatrix = worldMatrix.rotateByRotationVector(this.rotation);
+    public get name(): string {
+        return 'Planet';
+    }
 
+    public draw(gl: WebGLRenderingContext, shader: Shader, worldMatrix: Mat4): void {
         super.draw(gl, shader, worldMatrix);
         
         shader.useShader();
@@ -135,16 +117,22 @@ export class Planet extends Body {
         this.mesh = MeshBuilder.buildIcosphere(gl, 3, this.colour);
     }
 
-    public getName(): string {
-        return 'Star';
+    public static withLocation(orientation: Vec3, bodyRotation: number, rotationSpeed: number, 
+            radius: number, colour: Colour3, location: Vec3): Planet {
+        let planet: Planet = new Planet(orientation, bodyRotation, rotationSpeed, 
+                radius, colour, null, null);
+        planet.location = location;
+        return planet;
     }
 }
 
 export class Star extends Body implements LightSource {
     private mesh: Mesh;
-    constructor(rotationVector: Vec3, private bodyRotation: number, private rotationSpeed: number,
-            private radius: number, private colour: Colour3) {
-        super(Vec3.zero(), rotationVector);
+
+    constructor(orientation: Vec3, private bodyRotation: number, private rotationSpeed: number,
+            private radius: number, private colour: Colour3,
+            orbit: Orbit, parent: Body) {
+        super(orientation, orbit, parent);
     }
 
     public update() {
@@ -153,9 +141,27 @@ export class Star extends Body implements LightSource {
         this.bodyRotation %= 2 * Math.PI;
     }
 
-    public draw(gl: WebGLRenderingContext, shader: Shader, worldMatrix: Mat4): void {
-        worldMatrix = worldMatrix.rotateByRotationVector(this.rotation);
+    public get name(): string {
+        return 'Star';
+    }
+    
+    public get lightSpecularColour(): Colour3 {
+        return this.colour;
+    }
 
+    public get lightDiffuseColour(): Colour3 {
+        return this.colour;
+    }
+
+    public get lightPosition(): Vec3 {
+        return this.position;
+    }
+
+    public get lightAttenuation(): number {
+        return -1;
+    }
+
+    public draw(gl: WebGLRenderingContext, shader: Shader, worldMatrix: Mat4): void {
         super.draw(gl, shader, worldMatrix);
         
         shader.useShader();
@@ -179,23 +185,11 @@ export class Star extends Body implements LightSource {
         this.mesh = MeshBuilder.buildIcosphere(gl, 3, this.colour);
     }
 
-    public getName(): string {
-        return 'Star';
-    }
-    
-    getSpecularColour(): Colour3 {
-        return this.colour;
-    }
-
-    getDiffuseColour(): Colour3 {
-        return this.colour;
-    }
-
-    getLightPosition(): Vec3 {
-        return this.position;
-    }
-
-    getLightAttenuation(): number {
-        return -1;
+    public static withLocation(orientation: Vec3, bodyRotation: number, rotationSpeed: number, 
+            radius: number, colour: Colour3, location: Vec3): Star {
+        let star: Star = new Star(orientation, bodyRotation, rotationSpeed, 
+                radius, colour, null, null);
+        star.location = location;
+        return star;
     }
 }

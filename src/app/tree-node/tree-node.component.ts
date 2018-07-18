@@ -1,7 +1,6 @@
-import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, Input } from '@angular/core';
 import { Listable } from '../listable';
 import { Body } from '../objects/body';
-import { Orbit } from '../objects/orbiter';
 
 @Component({
   selector: 'app-tree-node',
@@ -38,8 +37,6 @@ export class TreeNodeComponent implements OnInit {
   getSubNodes(): Listable[] {
     if(this.object instanceof Body) {
       return (this.object as Body).getOrbiters();
-    } else if(this.object instanceof Orbit) {
-      return (this.object as Orbit).getBody().getOrbiters();
     }
     return [];
   }

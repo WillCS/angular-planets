@@ -9,10 +9,16 @@ export class Shader {
     protected camera: Camera3D;
     protected model: Mat4;
 
+    /** gl.getAttribLocation and gl.getUniformLocation should be considered slow and used sparsely,
+     *  so we cache uniforms and attributes as we access them so we don't have to call these
+     *  methods repeatedly. */
+    private cachedUniforms: Map<string, WebGLUniformLocation> = new Map<string, WebGLUniformLocation>();
+    private cachedAttributes: Map<string, number> = new Map<string, number>();
+
     public onlyDrawPhysical = false;
 
     constructor(protected gl: WebGLRenderingContext, protected shader: WebGLProgram) {
-        
+
     }
 
     public setCamera(camera: Camera3D): void {
@@ -38,11 +44,23 @@ export class Shader {
     }
 
     public getAttributeLocation(attribute: string): number {
-        return this.gl.getAttribLocation(this.shader, attribute);
+        if(this.cachedAttributes.has(attribute)) {
+            return this.cachedAttributes.get(attribute);
+        } else {
+            let location: number = this.gl.getAttribLocation(this.shader, attribute);
+            this.cachedAttributes.set(attribute, location);
+            return location;
+        }
     }
 
     public getUniformLocation(uniform: string): WebGLUniformLocation {
-        return this.gl.getUniformLocation(this.shader, uniform);
+        if(this.cachedUniforms.has(uniform)) {
+            return this.cachedUniforms.get(uniform);
+        } else {
+            let location: WebGLUniformLocation = this.gl.getUniformLocation(this.shader, uniform);
+            this.cachedUniforms.set(uniform, location);
+            return location;
+        }
     }
 
     public setFloat(uniform: string, float: number): void {
@@ -116,10 +134,10 @@ export class LightShader extends Shader {
         this.setFloat3('cameraPos', this.camera.location);
         
         for(let i = 0; i < this.lights.length; i++) {
-            this.setFloat3(`lights[${i}].specularColour`, this.lights[i].getSpecularColour());
-            this.setFloat3(`lights[${i}].diffuseColour`, this.lights[i].getDiffuseColour());
-            this.setFloat3(`lights[${i}].position`, this.lights[i].getLightPosition());
-            this.setFloat(`lights[${i}].attenuation`, this.lights[i].getLightAttenuation());
+            this.setFloat3(`lights[${i}].specularColour`, this.lights[i].lightSpecularColour);
+            this.setFloat3(`lights[${i}].diffuseColour`, this.lights[i].lightDiffuseColour);
+            this.setFloat3(`lights[${i}].position`, this.lights[i].lightPosition);
+            this.setFloat(`lights[${i}].attenuation`, this.lights[i].lightAttenuation);
         }
     }
 

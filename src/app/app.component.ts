@@ -2,7 +2,6 @@ import { Component, OnInit, ElementRef } from '@angular/core';
 
 import { WebGLHelper } from './graphics/webGLHelper';
 import { Mat4 } from './math/mat4';
-import { Ring, Orbit, Orbiter } from './objects/orbiter';
 import { Vec3 } from './math/vector';
 import { Body, Star, Planet } from './objects/body';
 import { OrbitalCamera } from './camera';
@@ -11,6 +10,8 @@ import { PlanetService } from './planet.service';
 import { Shader, SkyboxShader, LightShader } from './graphics/shader';
 import { Skybox } from './graphics/skybox';
 import { Colour3 } from './graphics/colour';
+import { Ring } from './objects/ring';
+import { Orbit } from './objects/orbit';
 
 @Component({
   selector: 'app-root',
@@ -25,7 +26,7 @@ export class AppComponent implements OnInit {
   rollValue: number = 0;
   distanceMinValue: number = 50;
   distanceMaxValue: number = 8000;
-  distanceValue: number = 600;
+  distanceValue: number = 1800;
 
   private canvas: HTMLCanvasElement;
   private gl: WebGLRenderingContext;
@@ -60,17 +61,15 @@ export class AppComponent implements OnInit {
     this.canvas.height = 1000;
     this.gl = WebGLHelper.setupCanvas(this.canvas);
 
-    let sun = new Star(Vec3.zero(), 0, Math.PI / 3000, 500, Colour3.normal(1, 1, 1));
+    let sun: Star = Star.withLocation(Vec3.zero(), 0, Math.PI / 3000, 500, Colour3.normal(1, 1, 1), Vec3.zero());
+    let saturnOrbit: Orbit = Orbit.circular(5000, 0, 0, 0, (epoch: number) => epoch);
+    let saturn: Planet = new Planet(new Vec3(0, 0, 0), 0, Math.PI / 30, 150, Colour3.eightBit(255, 216, 167), saturnOrbit, sun);
 
-    let saturn = new Planet(new Vec3(0, 0, Math.PI / 6), 0, Math.PI / 30, 150, Colour3.eightBit(255, 216, 167));
     for(let i = 1; i < 9; i++) {
-      saturn.addOrbiter(new Ring(this.rings[i * 8], this.rings[i * 8 + 1], 0, Vec3.zero(), 
+      saturn.addOrbiter(new Ring(this.rings[i * 8], this.rings[i * 8 + 1], new Vec3(0, 0, Math.PI / 18), 0, 
           Colour3.eightBit(this.rings[i * 8 + 2], this.rings[i * 8 + 3], this.rings[i * 8 + 4]), 
           Colour3.eightBit(this.rings[i * 8 + 5], this.rings[i * 8 + 6], this.rings[i * 8 + 7])));
     }
-
-    
-    sun.addOrbiter(new Orbit(saturn, sun, 5000, Math.PI / 10000, Vec3.zero()));
 
     this.planetService.addBody(sun);
 

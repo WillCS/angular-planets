@@ -1,3 +1,3 @@
 export interface Listable {
-    getName(): string;
+    readonly name: string;
 }
