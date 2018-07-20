@@ -6,6 +6,8 @@ import { Shader } from "../graphics/shader";
 import { LightSource } from "../graphics/lightSource";
 import { Colour3 } from "../graphics/colour";
 import { Orbit } from "./orbit";
+import { Renderer } from "../graphics/renderer";
+import { Material } from "../graphics/material";
 
 export abstract class Body implements Orbiter {
     protected orbiters: Orbiter[] = [];
@@ -61,9 +63,12 @@ export abstract class Body implements Orbiter {
         });
     }
 
-    public draw(gl: WebGLRenderingContext, shader: Shader, worldMatrix: Mat4): void {
+    public draw(renderer: Renderer): void {
         this.orbiters.forEach(orbiter => {
-            orbiter.draw(gl, shader, worldMatrix.multiply(orbiter.orbitTransform));
+            renderer.pushMatrix();
+            renderer.modelMatrix = renderer.modelMatrix.multiply(orbiter.orbitTransform);
+            orbiter.draw(renderer);
+            renderer.popMatrix();
         });
     }
 
@@ -76,11 +81,13 @@ export abstract class Body implements Orbiter {
 
 export class Planet extends Body {
     private mesh: Mesh;
+    private material: Material;
 
     constructor(orientation: Vec3, private bodyRotation: number, private rotationSpeed: number,
             private radius: number, private colour: Colour3,
             orbit: Orbit, parent: Body) {
         super(orientation, orbit, parent);
+        this.material = new Material(Colour3.normal(0, 0, 0), 1, 1, 1, 32);
     }
 
     public update() {
@@ -93,19 +100,15 @@ export class Planet extends Body {
         return 'Planet';
     }
 
-    public draw(gl: WebGLRenderingContext, shader: Shader, worldMatrix: Mat4): void {
-        super.draw(gl, shader, worldMatrix);
+    public draw(renderer: Renderer): void {
+        super.draw(renderer);
         
-        shader.useShader();
-        shader.setFloat3('ambientColour', Colour3.normal(0, 0, 0));
-        shader.setFloat('specularReflection', 1);
-        shader.setFloat('ambientReflection', 1);
-        shader.setFloat('diffuseReflection', 1);
-        shader.setFloat('shininess', 32);
-        
-        let scaledMatrix = worldMatrix.scale(this.radius, this.radius, this.radius);
-        scaledMatrix = scaledMatrix.rotateY(this.bodyRotation);
-        this.mesh.draw(shader, scaledMatrix);
+        renderer.drawReal();
+        renderer.useMaterial(this.material);
+
+        renderer.modelMatrix = renderer.modelMatrix.scale(this.radius, this.radius, this.radius);
+        renderer.modelMatrix = renderer.modelMatrix.rotateY(this.bodyRotation);
+        renderer.draw(this.mesh);
     }
 
     public initDrawing(gl: WebGLRenderingContext): void {
@@ -128,11 +131,13 @@ export class Planet extends Body {
 
 export class Star extends Body implements LightSource {
     private mesh: Mesh;
+    private material: Material;
 
     constructor(orientation: Vec3, private bodyRotation: number, private rotationSpeed: number,
             private radius: number, private colour: Colour3,
             orbit: Orbit, parent: Body) {
         super(orientation, orbit, parent);
+        this.material = new Material(Colour3.normal(1, 1, 1), 1, 1, 1, 32);
     }
 
     public update() {
@@ -161,19 +166,15 @@ export class Star extends Body implements LightSource {
         return -1;
     }
 
-    public draw(gl: WebGLRenderingContext, shader: Shader, worldMatrix: Mat4): void {
-        super.draw(gl, shader, worldMatrix);
+    public draw(renderer: Renderer): void {
+        super.draw(renderer);
         
-        shader.useShader();
-        shader.setFloat3('ambientColour', this.colour);
-        shader.setFloat('specularReflection', 1);
-        shader.setFloat('ambientReflection', 1);
-        shader.setFloat('diffuseReflection', 1);
-        shader.setFloat('shininess', 32);
-        
-        let scaledMatrix = worldMatrix.scale(this.radius, this.radius, this.radius);
-        scaledMatrix = scaledMatrix.rotateY(this.bodyRotation);
-        this.mesh.draw(shader, scaledMatrix);
+        renderer.drawReal();
+        renderer.useMaterial(this.material);
+
+        renderer.modelMatrix = renderer.modelMatrix.scale(this.radius, this.radius, this.radius);
+        renderer.modelMatrix = renderer.modelMatrix.rotateY(this.bodyRotation);
+        renderer.draw(this.mesh);
     }
 
     public initDrawing(gl: WebGLRenderingContext): void {

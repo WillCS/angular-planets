@@ -5,16 +5,20 @@ import { Listable } from "../listable";
 import { Colour3 } from "../graphics/colour";
 import { Vec3 } from "../math/vector";
 import { Mat4 } from "../math/mat4";
-import { Shader } from "../graphics/shader";
+import { Renderer } from "../graphics/renderer";
+import { Material } from "../graphics/material";
 
 export class Ring implements Orbiter, Drawable, Listable {
     private mesh: Mesh;
+    private material: Material;
     public rotation: number;
+    
     constructor(private innerRadius: number, private outerRadius: number, 
             private angles: Vec3, private rotationSpeed: number,
             private innerColour: Colour3, private outerColour: Colour3,
             private startAngle: number = 0, private endAngle: number = 2 * Math.PI) {
         this.rotation = 0;
+        this.material = new Material(Colour3.normal(0, 0, 0), 1, 1, 1, 32);
     }
     
     public update(): void {
@@ -36,15 +40,10 @@ export class Ring implements Orbiter, Drawable, Listable {
         return matrix;
     }
 
-    public draw(gl: WebGLRenderingContext, shader: Shader, worldMatrix: Mat4): void {
-        shader.useShader();
-        shader.setFloat3('ambientColour', Colour3.normal(0, 0, 0));
-        shader.setFloat('specularReflection', 1);
-        shader.setFloat('ambientReflection', 1);
-        shader.setFloat('diffuseReflection', 1);
-        shader.setFloat('shininess', 32);
-
-        this.mesh.draw(shader, worldMatrix);
+    public draw(renderer: Renderer): void {
+        renderer.drawReal();
+        renderer.useMaterial(this.material);
+        renderer.draw(this.mesh);
     }
 
     public initDrawing(gl: WebGLRenderingContext): void {

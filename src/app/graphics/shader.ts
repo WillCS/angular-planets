@@ -15,10 +15,16 @@ export class Shader {
     private cachedUniforms: Map<string, WebGLUniformLocation> = new Map<string, WebGLUniformLocation>();
     private cachedAttributes: Map<string, number> = new Map<string, number>();
 
-    public onlyDrawPhysical = false;
-
     constructor(protected gl: WebGLRenderingContext, protected shader: WebGLProgram) {
 
+    }
+
+    public get requiresNormals(): boolean {
+        return false;
+    }
+
+    public get requiresColours(): boolean {
+        return true;
     }
 
     public setCamera(camera: Camera3D): void {
@@ -125,6 +131,10 @@ export class LightShader extends Shader {
     
     constructor(gl: WebGLRenderingContext) {
         super(gl, WebGLHelper.buildShaderProgram(gl, WebGLHelper.LIGHT_SHADER));
+    }
+
+    public get requiresNormals(): boolean {
+        return true;
     }
 
     public setUniforms(): void {

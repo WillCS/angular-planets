@@ -4,8 +4,8 @@ import { Body } from './objects/body';
 import { MathHelper } from './math/mathHelper';
 import { Drawable } from './graphics/drawable';
 import { Mesh, MeshBuilder } from './graphics/mesh';
-import { Shader } from './graphics/shader';
 import { Colour3 } from './graphics/colour';
+import { Renderer } from './graphics/renderer';
 
 export abstract class Camera3D implements Drawable {
     public abstract get location(): Vec3;
@@ -25,19 +25,33 @@ export abstract class Camera3D implements Drawable {
 
     }
 
-    draw(gl: WebGLRenderingContext, shader: Shader, worldMatrix: Mat4): void {
-        worldMatrix = worldMatrix.translate(this.location.x, this.location.y, this.location.z);
-        worldMatrix = worldMatrix.scale(10, 10, 10);
-        this.mesh.draw(shader, worldMatrix);
+    draw(renderer: Renderer): void {
+        renderer.pushMatrix();
+
+        renderer.modelMatrix = renderer.modelMatrix.translate(this.location.x, this.location.y, this.location.z);
+        renderer.modelMatrix = renderer.modelMatrix.scale(10, 10, 10);
+        renderer.drawImaginary();
+        renderer.draw(this.mesh);
 
         let up: Vec3 = this.getUpVector().multiply(2);
-        this.arrows[0].draw(shader, worldMatrix.scale(up.x, up.y, up.z));
+        renderer.pushMatrix();
+        renderer.modelMatrix = renderer.modelMatrix.scale(up.x, up.y, up.z);
+        renderer.draw(this.arrows[0]);
+        renderer.popMatrix();
         
         let forward: Vec3 = this.getLookDirection().negate().multiply(2);
-        this.arrows[1].draw(shader, worldMatrix.scale(forward.x, forward.y, forward.z));
+        renderer.pushMatrix();
+        renderer.modelMatrix = renderer.modelMatrix.scale(forward.x, forward.y, forward.z);
+        renderer.draw(this.arrows[1]);
+        renderer.popMatrix();
         
         let right: Vec3 = up.cross(forward).normalize().multiply(2);
-        this.arrows[2].draw(shader, worldMatrix.scale(right.x, right.y, right.z));
+        renderer.pushMatrix();
+        renderer.modelMatrix = renderer.modelMatrix.scale(right.x, right.y, right.z)
+        renderer.draw(this.arrows[2]);
+        renderer.popMatrix();
+
+        renderer.popMatrix();
     }
 
     initDrawing(gl: WebGLRenderingContext): void {

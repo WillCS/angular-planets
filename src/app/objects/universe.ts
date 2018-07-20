@@ -1,6 +1,6 @@
 import { Drawable } from "../graphics/drawable";
-import { Shader } from "../graphics/shader";
 import { Mat4 } from "../math/mat4";
+import { Renderer } from "../graphics/renderer";
 
 export class Universe implements Drawable {
 
@@ -8,7 +8,7 @@ export class Universe implements Drawable {
         throw new Error("Method not implemented.");
     }
 
-    public draw(gl: WebGLRenderingContext, shader: Shader, worldMatrix: Mat4): void {
+    public draw(renderer: Renderer): void {
         
     }
 }

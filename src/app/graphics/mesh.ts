@@ -56,8 +56,7 @@ export class Mesh {
         this.drawMode = drawMode;
     }
 
-    public draw(shader: Shader, worldMatrix: Mat4,
-            colour: boolean = this.hasColours, normal: boolean = this.hasNormals): void {
+    public draw(shader: Shader, modelMatrix: Mat4): void {
         shader.useShader();
 
         let vertexSize: number = 3;
@@ -67,22 +66,22 @@ export class Mesh {
 
         shader.setIndexArray(this.indexBuffer);
 
-        if(colour) {
+        if(shader.requiresColours) {
             let colourSize: number = 3;
             let colourType: number = this.gl.FLOAT;
             let colourNormalize: boolean = true;
             shader.setAttributeArray('vertexColour', this.colourBuffer, 
                     colourSize, colourType, colourNormalize);
         }
-
-        if(normal) {
+        
+        if(shader.requiresNormals) {
             let normalSize: number = 3;
             let normalType: number = this.gl.FLOAT;
             shader.setAttributeArray('vertexNorm', this.normalBuffer, 
                     normalSize, normalType);
         }
 
-        shader.setModel(worldMatrix);
+        shader.setModel(modelMatrix);
 
         let indexType: number = this.gl.UNSIGNED_SHORT;
         let indexOffset: number = 0;

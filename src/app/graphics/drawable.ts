@@ -1,7 +1,7 @@
 import { Mat4 } from '../math/mat4';
-import { Shader } from './shader';
+import { Renderer } from './renderer';
 
 export interface Drawable {
-    draw(gl: WebGLRenderingContext, shader: Shader, worldMatrix: Mat4): void;
+    draw(renderer: Renderer): void;
     initDrawing(gl: WebGLRenderingContext): void;
 }

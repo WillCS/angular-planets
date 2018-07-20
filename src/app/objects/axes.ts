@@ -4,6 +4,7 @@ import { Mat4 } from "../math/mat4";
 import { Shader } from "../graphics/shader";
 import { Colour3 } from "../graphics/colour";
 import { Vec3 } from "../math/vector";
+import { Renderer } from "../graphics/renderer";
 
 export class Axes implements Drawable {
     private axes: Mesh[] = [];
@@ -12,9 +13,10 @@ export class Axes implements Drawable {
 
     }
 
-    public draw(gl: WebGLRenderingContext, shader: Shader, worldMatrix: Mat4): void {
+    public draw(renderer: Renderer): void {
+        renderer.drawImaginary();
         this.axes.forEach(axe => {
-            axe.draw(shader, worldMatrix);
+            renderer.draw(axe);
         });
     }
 

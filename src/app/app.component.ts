@@ -12,6 +12,7 @@ import { Skybox } from './graphics/skybox';
 import { Colour3 } from './graphics/colour';
 import { Ring } from './objects/ring';
 import { Orbit } from './objects/orbit';
+import { Renderer } from './graphics/renderer';
 
 @Component({
   selector: 'app-root',
@@ -36,9 +37,8 @@ export class AppComponent implements OnInit {
   constructor(private elementRef: ElementRef, private planetService: PlanetService) {
     
   }
+  private renderer: Renderer;
 
-  private shaderProgram: WebGLProgram;
-  private shader: Shader;
   private skybox: Skybox;
   private skyboxShader: Shader;
   
@@ -82,17 +82,23 @@ export class AppComponent implements OnInit {
     this.camera = new OrbitalCamera(projection);
     this.camera.minDistance = 50;
     this.camera.maxDistance = 8000;
-    this.camera.lookAt(saturn, false);
+    this.camera.lookAt(sun, false);
     this.camera.setDistance(200, false);
 
     this.axes = new Axes(0);
     this.axes.initDrawing(this.gl);
 
     //this.shader = new Shader(this.gl, WebGLHelper.buildShaderProgram(this.gl, WebGLHelper.DEFAULT_SHADER));
-    this.shader = new LightShader(this.gl);
-    (this.shader as LightShader).setAmbient(Colour3.eightBit(0, 0, 0));
-    (this.shader as LightShader).addLight(sun);
-    this.shader.setCamera(this.camera);
+    let primaryShader: LightShader = new LightShader(this.gl);
+    primaryShader.setAmbient(Colour3.eightBit(0, 0, 0));
+    primaryShader.addLight(sun);
+    primaryShader.setCamera(this.camera);
+
+    let defaultShader: WebGLProgram = WebGLHelper.buildShaderProgram(this.gl, WebGLHelper.DEFAULT_SHADER);
+
+    let secondaryShader: Shader = new Shader(this.gl, defaultShader);
+
+    this.renderer = new Renderer(this.gl, primaryShader, secondaryShader);
 
     this.skyboxShader = new SkyboxShader(this.gl);
     this.skyboxShader.setCamera(this.camera);
@@ -146,13 +152,13 @@ export class AppComponent implements OnInit {
     this.gl.enable(this.gl.BLEND);
     this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
 
-    this.gl.useProgram(this.shaderProgram);
-
     this.skybox.draw(this.skyboxShader);
     
-    this.shader.useShader();
-    this.shader.setUniforms();
+    this.renderer.drawReal();
+    this.renderer.shader.setUniforms();
 
-    this.object.draw(this.gl, this.shader, Mat4.identity());
+    this.renderer.pushMatrix();
+    this.object.draw(this.renderer);
+    this.renderer.popMatrix();
   }
 }
