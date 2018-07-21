@@ -82,7 +82,7 @@ export class AppComponent implements OnInit {
     this.camera = new OrbitalCamera(projection);
     this.camera.minDistance = 50;
     this.camera.maxDistance = 8000;
-    this.camera.lookAt(sun, false);
+    this.camera.lookAt(saturn, false);
     this.camera.setDistance(200, false);
 
     this.axes = new Axes(0);
@@ -97,6 +97,7 @@ export class AppComponent implements OnInit {
     let defaultShader: WebGLProgram = WebGLHelper.buildShaderProgram(this.gl, WebGLHelper.DEFAULT_SHADER);
 
     let secondaryShader: Shader = new Shader(this.gl, defaultShader);
+    secondaryShader.setCamera(this.camera);
 
     this.renderer = new Renderer(this.gl, primaryShader, secondaryShader);
 
@@ -154,8 +155,7 @@ export class AppComponent implements OnInit {
 
     this.skybox.draw(this.skyboxShader);
     
-    this.renderer.drawReal();
-    this.renderer.shader.setUniforms();
+    this.renderer.beginDrawing();
 
     this.renderer.pushMatrix();
     this.object.draw(this.renderer);

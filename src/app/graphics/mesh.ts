@@ -72,6 +72,8 @@ export class Mesh {
             let colourNormalize: boolean = true;
             shader.setAttributeArray('vertexColour', this.colourBuffer, 
                     colourSize, colourType, colourNormalize);
+        } else {
+            shader.disableAttributeArray('vertexColour');
         }
         
         if(shader.requiresNormals) {
@@ -79,6 +81,8 @@ export class Mesh {
             let normalType: number = this.gl.FLOAT;
             shader.setAttributeArray('vertexNorm', this.normalBuffer, 
                     normalSize, normalType);
+        } else {
+            shader.disableAttributeArray('vertexNorm');
         }
 
         shader.setModel(modelMatrix);

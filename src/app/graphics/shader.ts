@@ -14,6 +14,7 @@ export class Shader {
      *  methods repeatedly. */
     private cachedUniforms: Map<string, WebGLUniformLocation> = new Map<string, WebGLUniformLocation>();
     private cachedAttributes: Map<string, number> = new Map<string, number>();
+    private enabledAttributes: Map<string, boolean> = new Map<string, boolean>();
 
     constructor(protected gl: WebGLRenderingContext, protected shader: WebGLProgram) {
 
@@ -104,12 +105,25 @@ export class Shader {
         this.gl.uniform4iv(location, int.toArray());
     }
 
+    public isAttributeEnabled(attribute: string): boolean {
+        return this.enabledAttributes.has(attribute) && this.enabledAttributes.get(attribute);
+    }
+
     public setAttributeArray(attribute: string, buffer: WebGLBuffer, size: number, type: number,
             normalize: boolean = false, stride: number = 0, offset: number = 0): void {
         let location: number = this.getAttributeLocation(attribute);
         this.gl.enableVertexAttribArray(location);
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer);
         this.gl.vertexAttribPointer(location, size, type, normalize, stride, offset);
+        this.enabledAttributes.set(attribute, true);
+    }
+
+    public disableAttributeArray(attribute: string): void {
+        if(this.isAttributeEnabled(attribute)) {
+            let location: number = this.getAttributeLocation(attribute);
+            this.gl.disableVertexAttribArray(location);
+            this.enabledAttributes.set(attribute, false);
+        }
     }
     
     public setIndexArray(buffer: WebGLBuffer): void {
@@ -126,8 +140,6 @@ export class SkyboxShader extends Shader {
 export class LightShader extends Shader {
     private ambient: Colour3;
     private lights: LightSource[] = [];
-
-    public onlyDrawPhysical = true;
     
     constructor(gl: WebGLRenderingContext) {
         super(gl, WebGLHelper.buildShaderProgram(gl, WebGLHelper.LIGHT_SHADER));

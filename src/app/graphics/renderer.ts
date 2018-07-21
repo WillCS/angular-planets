@@ -1,4 +1,4 @@
-import { Shader } from "./shader";
+import { Shader, LightShader } from "./shader";
 import { Mesh } from "./mesh";
 import { Mat4 } from "../math/mat4";
 import { Material } from "./material";
@@ -41,12 +41,14 @@ export class Renderer {
     }
 
     public useMaterial(material: Material): void {
-        this.shader.useShader();
-        this.shader.setFloat3('ambientColour', material.ambientColour);
-        this.shader.setFloat('specularReflection', material.specularReflection);
-        this.shader.setFloat('ambientReflection', material.ambientReflection);
-        this.shader.setFloat('diffuseReflection', material.diffuseReflection);
-        this.shader.setFloat('shininess', material.shininess);
+        if(this.currentShader && this.currentShader instanceof LightShader) {
+            this.shader.useShader();
+            this.shader.setFloat3('ambientColour', material.ambientColour);
+            this.shader.setFloat('specularReflection', material.specularReflection);
+            this.shader.setFloat('ambientReflection', material.ambientReflection);
+            this.shader.setFloat('diffuseReflection', material.diffuseReflection);
+            this.shader.setFloat('shininess', material.shininess);
+        }
     }
 
     public drawReal(): void {
@@ -61,6 +63,17 @@ export class Renderer {
         this.currentShader = this.imaginary;
         if(this.currentShader) {
             this.currentShader.useShader();
+        }
+    }
+
+    public beginDrawing(): void {
+        this.drawImaginary();
+        if(this.currentShader) {
+            this.currentShader.setUniforms();
+        }
+        this.drawReal();
+        if(this.currentShader) {
+            this.currentShader.setUniforms();
         }
     }
 
