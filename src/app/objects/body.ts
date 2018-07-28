@@ -1,13 +1,13 @@
 import { Vec3, Vec4 } from "../math/vector";
-import { Mat4 } from "../math/mat4";
+import { Mat4 } from "../math/matrix";
 import { Orbiter } from "./orbiter";
 import { Mesh, MeshBuilder } from "../graphics/mesh";
-import { Shader } from "../graphics/shader";
 import { LightSource } from "../graphics/lightSource";
 import { Colour3 } from "../graphics/colour";
 import { Orbit } from "./orbit";
 import { Renderer } from "../graphics/renderer";
 import { Material } from "../graphics/material";
+import { Ray, Intersection } from "../physics/rayTracer";
 
 export abstract class Body implements Orbiter {
     protected orbiters: Orbiter[] = [];
@@ -77,6 +77,8 @@ export abstract class Body implements Orbiter {
             orbiter.initDrawing(gl);
         })
     }
+
+    public abstract intersect(ray: Ray): Intersection;
 }
 
 export class Planet extends Body {
@@ -118,6 +120,23 @@ export class Planet extends Body {
         }
 
         this.mesh = MeshBuilder.buildIcosphere(gl, 3, this.colour);
+    }
+
+    public intersect(ray: Ray): Intersection {
+        let difference: Vec3 = ray.start.subtract(this.location);
+        let radicand: number = Math.pow(ray.direction.dot(difference), 2) - 
+                difference.lengthSquared + Math.pow(this.radius, 2);
+
+        if(radicand < 0) {
+            return undefined;
+        } else {
+            let start: number = -(ray.direction.dot(difference));
+            if(radicand <= 0.01) {
+                return new Intersection(this, ray, start);
+            } else {
+                return new Intersection(this, ray, start - Math.sqrt(radicand));
+            }
+        }
     }
 
     public static withLocation(orientation: Vec3, bodyRotation: number, rotationSpeed: number, 
@@ -184,6 +203,23 @@ export class Star extends Body implements LightSource {
         }
 
         this.mesh = MeshBuilder.buildIcosphere(gl, 3, this.colour);
+    }
+
+    public intersect(ray: Ray): Intersection {
+        let difference: Vec3 = ray.start.subtract(this.location);
+        let radicand: number = Math.pow(ray.direction.dot(difference), 2) - 
+                difference.lengthSquared + Math.pow(this.radius, 2);
+
+        if(radicand < 0) {
+            return null;
+        } else {
+            let start: number = -(ray.direction.dot(difference));
+            if(radicand <= 0.01) {
+                return new Intersection(this, ray, start);
+            } else {
+                return new Intersection(this, ray, start - Math.sqrt(radicand));
+            }
+        }
     }
 
     public static withLocation(orientation: Vec3, bodyRotation: number, rotationSpeed: number, 

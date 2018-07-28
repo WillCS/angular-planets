@@ -1,7 +1,7 @@
 import { Component, OnInit, ElementRef } from '@angular/core';
 
 import { WebGLHelper } from './graphics/webGLHelper';
-import { Mat4 } from './math/mat4';
+import { Mat4 } from './math/matrix';
 import { Vec3 } from './math/vector';
 import { Body, Star, Planet } from './objects/body';
 import { OrbitalCamera } from './camera';

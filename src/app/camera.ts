@@ -1,4 +1,4 @@
-import { Mat4 } from './math/mat4';
+import { Mat4 } from './math/matrix';
 import { Vec3, Vec4 } from './math/vector';
 import { Body } from './objects/body';
 import { MathHelper } from './math/mathHelper';

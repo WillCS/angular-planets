@@ -1,6 +1,6 @@
 import { Drawable } from "../graphics/drawable";
 import { Mesh, MeshBuilder } from "../graphics/mesh";
-import { Mat4 } from "../math/mat4";
+import { Mat4 } from "../math/matrix";
 import { Shader } from "../graphics/shader";
 import { Colour3 } from "../graphics/colour";
 import { Vec3 } from "../math/vector";

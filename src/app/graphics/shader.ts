@@ -3,7 +3,7 @@ import { LightSource } from "./lightSource";
 import { Colour3, Colour4 } from "./colour";
 import { Vec3, Vec4 } from "../math/vector";
 import { Camera3D } from "../camera";
-import { Mat4 } from "../math/mat4";
+import { Mat4 } from "../math/matrix";
 
 export class Shader {
     protected camera: Camera3D;

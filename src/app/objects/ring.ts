@@ -4,9 +4,10 @@ import { Drawable } from "../graphics/drawable";
 import { Listable } from "../listable";
 import { Colour3 } from "../graphics/colour";
 import { Vec3 } from "../math/vector";
-import { Mat4 } from "../math/mat4";
+import { Mat4 } from "../math/matrix";
 import { Renderer } from "../graphics/renderer";
 import { Material } from "../graphics/material";
+import { Ray, Intersection } from "../physics/rayTracer";
 
 export class Ring implements Orbiter, Drawable, Listable {
     private mesh: Mesh;
@@ -54,5 +55,9 @@ export class Ring implements Orbiter, Drawable, Listable {
         this.mesh = MeshBuilder.buildRing(gl, 3, 
                 this.innerRadius, this.outerRadius, this.startAngle, this.endAngle, 
                 this.innerColour, this.outerColour);
+    }
+
+    public intersect(ray: Ray): Intersection {
+        return undefined;
     }
 }

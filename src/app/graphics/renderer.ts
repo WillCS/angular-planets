@@ -1,6 +1,6 @@
 import { Shader, LightShader } from "./shader";
 import { Mesh } from "./mesh";
-import { Mat4 } from "../math/mat4";
+import { Mat4 } from "../math/matrix";
 import { Material } from "./material";
 
 export class Renderer {
