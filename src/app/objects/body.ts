@@ -8,12 +8,13 @@ import { Orbit } from "./orbit";
 import { Renderer } from "../graphics/renderer";
 import { Material } from "../graphics/material";
 import { Ray, Intersection } from "../physics/rayTracer";
+import { MathHelper } from "../math/mathHelper";
 
 export abstract class Body implements Orbiter {
     protected orbiters: Orbiter[] = [];
     protected location: Vec3;
 
-    constructor(protected orientation: Vec3, public orbit: Orbit, public parent: Body) {
+    constructor(protected orientation: Vec3, public orbit: Orbit, public readonly parent: Body) {
         if(parent) {
             parent.addOrbiter(this);
         }
@@ -124,21 +125,21 @@ export class Planet extends Body {
 
     public intersect(ray: Ray): Intersection {
         let difference: Vec3 = ray.start.subtract(this.location);
-        let radicand: number = Math.pow(ray.direction.dot(difference), 2) - 
-                difference.lengthSquared + Math.pow(this.radius, 2);
+        let radicand: number = MathHelper.square(ray.direction.dot(difference)) - 
+                difference.lengthSquared + MathHelper.square(this.radius);
 
         if(radicand < 0) {
-            return undefined;
+            return null;
         } else {
             let start: number = -(ray.direction.dot(difference));
-            if(radicand <= 0.01) {
+            if(MathHelper.approxEqual(radicand, 0)) {
                 return new Intersection(this, ray, start);
             } else {
                 return new Intersection(this, ray, start - Math.sqrt(radicand));
             }
         }
     }
-
+    
     public static withLocation(orientation: Vec3, bodyRotation: number, rotationSpeed: number, 
             radius: number, colour: Colour3, location: Vec3): Planet {
         let planet: Planet = new Planet(orientation, bodyRotation, rotationSpeed, 
@@ -207,14 +208,14 @@ export class Star extends Body implements LightSource {
 
     public intersect(ray: Ray): Intersection {
         let difference: Vec3 = ray.start.subtract(this.location);
-        let radicand: number = Math.pow(ray.direction.dot(difference), 2) - 
-                difference.lengthSquared + Math.pow(this.radius, 2);
+        let radicand: number = MathHelper.square(ray.direction.dot(difference)) - 
+                difference.lengthSquared + MathHelper.square(this.radius);
 
         if(radicand < 0) {
             return null;
         } else {
             let start: number = -(ray.direction.dot(difference));
-            if(radicand <= 0.01) {
+            if(MathHelper.approxEqual(radicand, 0)) {
                 return new Intersection(this, ray, start);
             } else {
                 return new Intersection(this, ray, start - Math.sqrt(radicand));

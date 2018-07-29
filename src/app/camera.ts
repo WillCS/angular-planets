@@ -1,31 +1,59 @@
 import { Mat4 } from './math/matrix';
-import { Vec3, Vec4 } from './math/vector';
+import { Vec3 } from './math/vector';
 import { Body } from './objects/body';
 import { MathHelper } from './math/mathHelper';
 import { Drawable } from './graphics/drawable';
 import { Mesh, MeshBuilder } from './graphics/mesh';
 import { Colour3 } from './graphics/colour';
 import { Renderer } from './graphics/renderer';
+import { Ray } from './physics/rayTracer';
 
 export abstract class Camera3D implements Drawable {
     public abstract get location(): Vec3;
     public abstract getLookMatrix(): Mat4;
     public abstract getProjectionMatrix(): Mat4
     public abstract getUpVector(): Vec3;
-    public abstract getLookDirection();
-
-    public abstract setProjectionMatrix(matrix: Mat4): void;
+    public abstract getLookVector(): Vec3;
+    public abstract ray(x: number, y: number): Ray;
 
     public abstract update(): void;
+
+    protected abstract updateProjectionMatrix(): void;
 
     private mesh: Mesh;
     private arrows: Mesh[] = [];
 
-    constructor(protected projectionMatrix: Mat4) {
+    protected projectionMatrix: Mat4;
+    protected aspectRatio: number;
+
+    constructor(protected width: number, protected height: number, 
+            protected nearPlaneDist: number, protected farPlaneDist: number) {
 
     }
 
-    draw(renderer: Renderer): void {
+    public set viewportWidth(width: number) {
+        this.width = width;
+        this.aspectRatio = this.width / this.height;
+        this.updateProjectionMatrix();
+    }
+
+    public set viewportHeight(height: number) {
+        this.height = height;
+        this.aspectRatio = this.width / this.height;
+        this.updateProjectionMatrix();
+    }
+
+    public set nearPlaneDistance(nearDist: number) {
+        this.nearPlaneDist = nearDist;
+        this.updateProjectionMatrix();
+    }
+
+    public set farPlaneDistance(farDist: number) {
+        this.farPlaneDist = farDist;
+        this.updateProjectionMatrix();
+    }
+
+    public draw(renderer: Renderer): void {
         renderer.pushMatrix();
 
         renderer.modelMatrix = renderer.modelMatrix.translate(this.location.x, this.location.y, this.location.z);
@@ -39,7 +67,7 @@ export abstract class Camera3D implements Drawable {
         renderer.draw(this.arrows[0]);
         renderer.popMatrix();
         
-        let forward: Vec3 = this.getLookDirection().negate().multiply(2);
+        let forward: Vec3 = this.getLookVector().negate().multiply(2);
         renderer.pushMatrix();
         renderer.modelMatrix = renderer.modelMatrix.scale(forward.x, forward.y, forward.z);
         renderer.draw(this.arrows[1]);
@@ -54,7 +82,7 @@ export abstract class Camera3D implements Drawable {
         renderer.popMatrix();
     }
 
-    initDrawing(gl: WebGLRenderingContext): void {
+    public initDrawing(gl: WebGLRenderingContext): void {
         this.mesh = MeshBuilder.buildIcosphere(gl, 0, Colour3.eightBit(100, 100, 100));
         this.arrows.push(
             MeshBuilder.buildLines(gl, [new Vec3(0, 0, 0), new Vec3(1, 1, 1)], Colour3.eightBit(0, 255, 0)),
@@ -106,9 +134,17 @@ export class OrbitalCamera extends Camera3D {
     private rollInertia: number = 0;
     private rollChanging: boolean = false;
 
-    constructor(projectionMatrix: Mat4) {
-        super(projectionMatrix);
+    constructor(width: number, height: number, nearPlaneDist: number, farPlaneDist: number,
+            protected fov: number) {
+        super(width, height, nearPlaneDist, farPlaneDist);
+        this.aspectRatio = this.width / this.height;
+        this.updateProjectionMatrix();
         this.focusPos = Vec3.zero();
+    }
+
+    public set FOV(fov: number) {
+        this.fov = fov;
+        this.updateProjectionMatrix();
     }
 
     public get focusPosition(): Vec3 {
@@ -133,6 +169,14 @@ export class OrbitalCamera extends Camera3D {
         this.updateRoll();
         this.updateInclination();
         this.updateAzimuth();
+    }
+
+    public ray(x: number, y: number): Ray {
+        return undefined;
+    } 
+
+    protected updateProjectionMatrix(): void {
+        this.projectionMatrix = Mat4.perspectiveProjection(this.fov, this.aspectRatio, this.nearPlaneDist, this.farPlaneDist);
     }
 
     private updatePosition(): void {
@@ -248,10 +292,6 @@ export class OrbitalCamera extends Camera3D {
     public getProjectionMatrix(): Mat4 {
         return this.projectionMatrix;
     }
-
-    public setProjectionMatrix(matrix: Mat4): void {
-        this.projectionMatrix = matrix;
-    }
     
     /** If the camera were a physical object in the world, this returns the vector pointing
      *  directly out of the top of it. We do some fun linear algebra to get this. 
@@ -262,7 +302,7 @@ export class OrbitalCamera extends Camera3D {
      *  Thanks to Tina for helping me figure this out! <3
      */
     public getUpVector(): Vec3 {
-        let sphereNormal: Vec3 = this.getLookDirection().negate();
+        let sphereNormal: Vec3 = this.getLookVector().negate();
         let localAzimuth: number = this.azimuth - (Math.PI / 2);
         let bisectNormal: Vec3 = new Vec3(
                 Math.cos(localAzimuth) * Math.sin(this.roll),
@@ -271,7 +311,7 @@ export class OrbitalCamera extends Camera3D {
         return sphereNormal.cross(bisectNormal).normalize();
     }
 
-    public getLookDirection(): Vec3 {
+    public getLookVector(): Vec3 {
         return this.focusPosition.subtract(this.location).normalize();
     }
     

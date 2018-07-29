@@ -66,20 +66,17 @@ export class AppComponent implements OnInit {
     let saturn: Planet = new Planet(new Vec3(0, 0, 0), 0, Math.PI / 30, 150, Colour3.eightBit(255, 216, 167), saturnOrbit, sun);
 
     for(let i = 1; i < 9; i++) {
-      saturn.addOrbiter(new Ring(this.rings[i * 8], this.rings[i * 8 + 1], new Vec3(0, 0, Math.PI / 18), 0, 
+      new Ring(saturn, this.rings[i * 8], this.rings[i * 8 + 1], new Vec3(0, 0, Math.PI / 18), 0, 
           Colour3.eightBit(this.rings[i * 8 + 2], this.rings[i * 8 + 3], this.rings[i * 8 + 4]), 
-          Colour3.eightBit(this.rings[i * 8 + 5], this.rings[i * 8 + 6], this.rings[i * 8 + 7])));
+          Colour3.eightBit(this.rings[i * 8 + 5], this.rings[i * 8 + 6], this.rings[i * 8 + 7]));
     }
 
     this.planetService.addBody(sun);
 
     this.object = sun;
     this.object.initDrawing(this.gl);
-
-    let aspect: number = this.canvas.clientWidth / this.canvas.clientHeight;
-    let projection: Mat4 = Mat4.perspectiveProjection(Math.PI / 3, aspect, 1, 50000)
-
-    this.camera = new OrbitalCamera(projection);
+    
+    this.camera = new OrbitalCamera(this.canvas.clientWidth, this.canvas.clientHeight, 1, 50000, Math.PI / 3);
     this.camera.minDistance = 50;
     this.camera.maxDistance = 8000;
     this.camera.lookAt(saturn, false);

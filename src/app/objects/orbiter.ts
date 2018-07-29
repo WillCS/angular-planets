@@ -4,8 +4,10 @@ import { Tickable } from "./tickable";
 import { Drawable } from "../graphics/drawable";
 import { Listable } from "../listable";
 import { SolidBody } from "../physics/solidBody";
+import { Body } from "./body";
 
 export interface Orbiter extends Tickable, Drawable, Listable, SolidBody {
     readonly orbitEulerAngles: Vec3;
     readonly orbitTransform: Mat4;
+    readonly parent: Body;
 }
