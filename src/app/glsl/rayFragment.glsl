@@ -24,6 +24,7 @@ struct Ring {
     vec3 normal;
     float innerRadius;
     float width;
+    vec4 colour;
 }
 
 uniform Planet planets[100];
