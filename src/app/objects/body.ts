@@ -1,14 +1,14 @@
-import { Vec3, Vec4 } from "../math/vector";
-import { Mat4 } from "../math/matrix";
-import { Orbiter } from "./orbiter";
-import { Mesh, MeshBuilder } from "../graphics/mesh";
-import { LightSource } from "../graphics/lightSource";
-import { Colour3 } from "../graphics/colour";
-import { Orbit } from "./orbit";
-import { Renderer } from "../graphics/renderer";
-import { Material } from "../graphics/material";
-import { Ray, Intersection } from "../physics/rayTracer";
-import { MathHelper } from "../math/mathHelper";
+import { Vec3, Vec4 } from '../math/vector';
+import { Mat4 } from '../math/matrix';
+import { Orbiter } from './orbiter';
+import { Mesh, MeshBuilder } from '../graphics/mesh';
+import { LightSource } from '../graphics/lightSource';
+import { Colour3 } from '../graphics/colour';
+import { Orbit } from './orbit';
+import { Renderer } from '../graphics/renderer';
+import { Material } from '../graphics/material';
+import { Ray, Intersection } from '../physics/rayTracer';
+import { MathHelper } from '../math/mathHelper';
 
 export abstract class Body implements Orbiter {
     protected orbiters: Orbiter[] = [];
@@ -32,7 +32,7 @@ export abstract class Body implements Orbiter {
 
     public get position(): Vec3 {
         if(this.hasParent()) {
-            let parentPos: Vec3 = this.parent.position;
+            const parentPos: Vec3 = this.parent.position;
             return parentPos.add(this.orbitTransform.multiply(Vec4.one()).toVec3());
         } else {
             return this.location;
@@ -76,7 +76,7 @@ export abstract class Body implements Orbiter {
     public initDrawing(gl: WebGLRenderingContext): void {
         this.orbiters.forEach(orbiter => {
             orbiter.initDrawing(gl);
-        })
+        });
     }
 
     public abstract intersect(ray: Ray): Intersection;
@@ -87,7 +87,7 @@ export class Planet extends Body {
     private material: Material;
 
     constructor(orientation: Vec3, private bodyRotation: number, private rotationSpeed: number,
-            private radius: number, private colour: Colour3,
+            readonly radius: number, readonly colour: Colour3,
             orbit: Orbit, parent: Body) {
         super(orientation, orbit, parent);
         this.material = new Material(Colour3.normal(0, 0, 0), 1, 1, 1, 32);
@@ -105,7 +105,7 @@ export class Planet extends Body {
 
     public draw(renderer: Renderer): void {
         super.draw(renderer);
-        
+
         renderer.drawReal();
         renderer.useMaterial(this.material);
 
@@ -124,14 +124,14 @@ export class Planet extends Body {
     }
 
     public intersect(ray: Ray): Intersection {
-        let difference: Vec3 = ray.start.subtract(this.location);
-        let radicand: number = MathHelper.square(ray.direction.dot(difference)) - 
+        const difference: Vec3 = ray.start.subtract(this.location);
+        const radicand: number = MathHelper.square(ray.direction.dot(difference)) -
                 difference.lengthSquared + MathHelper.square(this.radius);
 
         if(radicand < 0) {
             return null;
         } else {
-            let start: number = -(ray.direction.dot(difference));
+            const start: number = -(ray.direction.dot(difference));
             if(MathHelper.approxEqual(radicand, 0)) {
                 return new Intersection(this, ray, start);
             } else {
@@ -139,10 +139,10 @@ export class Planet extends Body {
             }
         }
     }
-    
-    public static withLocation(orientation: Vec3, bodyRotation: number, rotationSpeed: number, 
+
+    public static withLocation(orientation: Vec3, bodyRotation: number, rotationSpeed: number,
             radius: number, colour: Colour3, location: Vec3): Planet {
-        let planet: Planet = new Planet(orientation, bodyRotation, rotationSpeed, 
+        const planet: Planet = new Planet(orientation, bodyRotation, rotationSpeed,
                 radius, colour, null, null);
         planet.location = location;
         return planet;
@@ -154,7 +154,7 @@ export class Star extends Body implements LightSource {
     private material: Material;
 
     constructor(orientation: Vec3, private bodyRotation: number, private rotationSpeed: number,
-            private radius: number, private colour: Colour3,
+            readonly radius: number, readonly colour: Colour3,
             orbit: Orbit, parent: Body) {
         super(orientation, orbit, parent);
         this.material = new Material(Colour3.normal(1, 1, 1), 1, 1, 1, 32);
@@ -169,7 +169,7 @@ export class Star extends Body implements LightSource {
     public get name(): string {
         return 'Star';
     }
-    
+
     public get lightSpecularColour(): Colour3 {
         return this.colour;
     }
@@ -188,7 +188,7 @@ export class Star extends Body implements LightSource {
 
     public draw(renderer: Renderer): void {
         super.draw(renderer);
-        
+
         renderer.drawReal();
         renderer.useMaterial(this.material);
 
@@ -207,14 +207,14 @@ export class Star extends Body implements LightSource {
     }
 
     public intersect(ray: Ray): Intersection {
-        let difference: Vec3 = ray.start.subtract(this.location);
-        let radicand: number = MathHelper.square(ray.direction.dot(difference)) - 
+        const difference: Vec3 = ray.start.subtract(this.location);
+        const radicand: number = MathHelper.square(ray.direction.dot(difference)) -
                 difference.lengthSquared + MathHelper.square(this.radius);
 
         if(radicand < 0) {
             return null;
         } else {
-            let start: number = -(ray.direction.dot(difference));
+            const start: number = -(ray.direction.dot(difference));
             if(MathHelper.approxEqual(radicand, 0)) {
                 return new Intersection(this, ray, start);
             } else {
@@ -223,9 +223,9 @@ export class Star extends Body implements LightSource {
         }
     }
 
-    public static withLocation(orientation: Vec3, bodyRotation: number, rotationSpeed: number, 
+    public static withLocation(orientation: Vec3, bodyRotation: number, rotationSpeed: number,
             radius: number, colour: Colour3, location: Vec3): Star {
-        let star: Star = new Star(orientation, bodyRotation, rotationSpeed, 
+        const star: Star = new Star(orientation, bodyRotation, rotationSpeed,
                 radius, colour, null, null);
         star.location = location;
         return star;

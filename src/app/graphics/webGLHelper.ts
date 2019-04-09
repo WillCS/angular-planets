@@ -11,6 +11,10 @@ const shaderSource = {
     default: {
         vertex:   require('raw-loader!../glsl/vertex.glsl'),
         fragment: require('raw-loader!../glsl/fragment.glsl')
+    },
+    ray_marcher: {
+        vertex:   require('raw-loader!../glsl/rayVertex.glsl'),
+        fragment: require('raw-loader!../glsl/rayFragment.glsl')
     }
 };
 
@@ -18,9 +22,10 @@ export let WebGLHelper = {
     SKYBOX_SHADER:  'skybox',
     LIGHT_SHADER:   'light',
     DEFAULT_SHADER: 'default',
+    SPHERE_TRACER: 'ray_marcher',
 
     setupCanvas(canvas: HTMLCanvasElement): WebGLRenderingContext {
-        let gl: WebGLRenderingContext = canvas.getContext('webgl');
+        const gl: WebGLRenderingContext = canvas.getContext('webgl');
 
         if(gl) {
             return gl;
@@ -30,7 +35,7 @@ export let WebGLHelper = {
     },
 
     compileShader(gl: WebGLRenderingContext, type: number, src: string): WebGLShader {
-        let shader: WebGLShader = gl.createShader(type);
+        const shader: WebGLShader = gl.createShader(type);
         gl.shaderSource(shader, src);
         gl.compileShader(shader);
 
@@ -43,9 +48,9 @@ export let WebGLHelper = {
         }
     },
 
-    createShaderProgram(gl: WebGLRenderingContext, vertex: WebGLShader, 
+    createShaderProgram(gl: WebGLRenderingContext, vertex: WebGLShader,
             fragment: WebGLShader): WebGLProgram {
-        let program: WebGLProgram = gl.createProgram();
+        const program: WebGLProgram = gl.createProgram();
         gl.attachShader(program, vertex);
         gl.attachShader(program, fragment);
         gl.linkProgram(program);
@@ -63,9 +68,9 @@ export let WebGLHelper = {
         let vertexShader: WebGLShader;
         let fragmentShader: WebGLShader;
         try {
-            vertexShader = 
+            vertexShader =
                     this.compileShader(gl, gl.VERTEX_SHADER, shaderSource[shader].vertex);
-            fragmentShader = 
+            fragmentShader =
                     this.compileShader(gl, gl.FRAGMENT_SHADER, shaderSource[shader].fragment);
         } catch(error) {
             console.log('Shaders failed to compile.');
@@ -85,9 +90,9 @@ export let WebGLHelper = {
     },
 
     resizeCanvasToWindowSize(canvas: HTMLCanvasElement): void {
-        let pixelRatio: number = window.devicePixelRatio;
+        const pixelRatio: number = window.devicePixelRatio;
 
         canvas.width = Math.floor(window.innerWidth * pixelRatio);
         canvas.height = Math.floor(window.innerHeight * pixelRatio);
     }
-}
+};
